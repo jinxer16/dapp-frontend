@@ -47,7 +47,7 @@ export const Web3ContextProvider = ({ children }: any) => {
         .then((val) => setBalance(formatEther(val)))
         .catch((err) => setError(err));
     }
-  }, [account]);
+  }, [account, chainId]);
 
   const connectInjected = useCallback(() => {
     activate(injectedConnector, setError, true)
