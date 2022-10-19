@@ -311,7 +311,9 @@ export const obtainLPDetailsFromPair = (pair: string, chainId: number, account: 
     token1: '',
     token0Symbol: '',
     token1Symbol: '',
-    accountBalance: 0
+    accountBalance: 0,
+    token0Decimals: 18,
+    token1Decimals: 18
   });
 
   useEffect(() => {
@@ -335,13 +337,18 @@ export const obtainLPDetailsFromPair = (pair: string, chainId: number, account: 
           [token0SymbolCall] = erc20AbiInterface.decodeFunctionResult('symbol()', token0SymbolCall);
           [token1SymbolCall] = erc20AbiInterface.decodeFunctionResult('symbol()', token1SymbolCall);
 
+          const tk1 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token0Call), url);
+          const tk2 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token1Call), url);
+
           setLpDetails({
             id: pair,
             token0: hexStripZeros(token0Call),
             token1: hexStripZeros(token1Call),
             token0Symbol: token0SymbolCall,
             token1Symbol: token1SymbolCall,
-            accountBalance: parseFloat(formatEther(balanceOfCall))
+            accountBalance: parseFloat(formatEther(balanceOfCall)),
+            token0Decimals: tk1.decimals,
+            token1Decimals: tk2.decimals
           });
         } catch (error: any) {
           console.log(error);

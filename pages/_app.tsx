@@ -1,5 +1,6 @@
 import '../styles/global.css';
 import 'react-toastify/dist/ReactToastify.css';
+import 'moment';
 import type { AppProps } from 'next/app';
 import Image from 'next/image';
 import { UnsupportedChainIdError, Web3ReactProvider } from '@web3-react/core';
