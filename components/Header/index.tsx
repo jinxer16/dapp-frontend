@@ -1,4 +1,4 @@
-import React, { ReactElement, useState, useEffect, Children } from 'react';
+import React, { ReactElement, useState, useEffect, Children, useMemo } from 'react';
 import { Transition } from '@headlessui/react';
 import Link, { LinkProps } from 'next/link';
 import Image from 'next/image';
@@ -9,8 +9,12 @@ import { FiX, FiChevronDown, FiLogOut, FiCheck } from 'react-icons/fi';
 import { BsCurrencyExchange } from 'react-icons/bs';
 import { SiLaunchpad } from 'react-icons/si';
 import { formatEthAddress } from 'eth-address';
+import _ from 'lodash';
+import { hexValue } from '@ethersproject/bytes';
 import { useWeb3Context } from '../../contexts/web3';
 import ProviderSelectModal from '../ProviderSelectModal';
+import chains from '../../assets/chains.json';
+import { switchChain } from '../../utils';
 
 type ActiveLinkProps = LinkProps & {
   children: ReactElement;
@@ -54,7 +58,8 @@ const ActiveLink = ({ children, activeClassName, ...props }: ActiveLinkProps) =>
 export default function Header() {
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const [showProviderModal, setShowProviderModal] = useState<boolean>(false);
-  const { active, account, error: web3Error, disconnectWallet } = useWeb3Context();
+  const { active, account, error: web3Error, disconnectWallet, chainId } = useWeb3Context();
+  const selectedChain = useMemo(() => chains[(chainId as unknown as keyof typeof chains) || 97], [chainId]);
   return (
     <>
       {web3Error && (
@@ -101,24 +106,53 @@ export default function Header() {
                 <FaWallet /> <span className="text-white text-[18px] ml-[2px]">Connect Wallet</span>
               </button>
             ) : (
-              <div className="dropdown dropdown-hover">
-                <button
-                  tabIndex={0}
-                  className="hidden md:flex justify-center items-center bg-[#1673b9] py-[9px] px-[10px] rounded-[25px] text-[18px] text-white gap-2"
-                >
-                  <div className="h-[30px] w-[30px] rounded-[25px] flex justify-center items-center border border-white">
-                    <FaWallet />
-                  </div>{' '}
-                  <span className="text-white text-[18px] ml-[2px]">{formatEthAddress(account as string, 4)}</span> <FiChevronDown />
-                </button>
-                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-[#000]/[0.6] rounded-box w-52 text-white">
-                  <li>
-                    <a onClick={disconnectWallet} className="btn btn-ghost gap-2">
-                      {' '}
-                      <FiLogOut /> Disconnect
-                    </a>
-                  </li>
-                </ul>
+              <div className="flex justify-center items-center gap-2">
+                <div className="dropdown dropdown-hover">
+                  <button
+                    tabIndex={0}
+                    className="hidden md:flex justify-center items-center bg-[#000]/40 py-[9px] px-[10px] rounded-[25px] text-[18px] text-white gap-2"
+                  >
+                    <div className="avatar">
+                      <div className="w-8 rounded-full">
+                        <img src={selectedChain.logoURI} alt={selectedChain.symbol} />
+                      </div>
+                    </div>
+                    <span className="text-white text-[18px] ml-[2px]">{selectedChain.name}</span> <FiChevronDown />
+                  </button>
+                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-[#000]/[0.6] rounded-box w-full text-white">
+                    {_.map(Object.keys(chains), (key, index) => (
+                      <li key={index}>
+                        <a className="gap-2" onClick={() => switchChain(hexValue(parseInt(key)), chains)}>
+                          <div className="avatar">
+                            <div className="w-8 rounded-full">
+                              <img src={chains[key as keyof typeof chains].logoURI} alt={chains[key as keyof typeof chains].symbol} />
+                            </div>
+                          </div>
+                          {chains[key as keyof typeof chains].name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="dropdown dropdown-hover">
+                  <button
+                    tabIndex={0}
+                    className="hidden md:flex justify-center items-center bg-[#1673b9] py-[9px] px-[10px] rounded-[25px] text-[18px] text-white gap-2"
+                  >
+                    <div className="h-[30px] w-[30px] rounded-[25px] flex justify-center items-center border border-white">
+                      <FaWallet />
+                    </div>{' '}
+                    <span className="text-white text-[18px] ml-[2px]">{formatEthAddress(account as string, 4)}</span> <FiChevronDown />
+                  </button>
+                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-[#000]/[0.6] rounded-box w-52 text-white">
+                    <li>
+                      <a onClick={disconnectWallet} className="btn btn-ghost gap-2">
+                        {' '}
+                        <FiLogOut /> Disconnect
+                      </a>
+                    </li>
+                  </ul>
+                </div>
               </div>
             )}
             <button
@@ -168,25 +202,49 @@ export default function Header() {
             <FaWallet />
           </button>
         ) : (
-          <div className="dropdown dropdown-left">
+          <div className="flex justify-center items-center gap-2">
+            <label
+              htmlFor="chain-modal"
+              className="md:hidden flex justify-center items-center bg-[#000]/40 py-[9px] px-[10px] rounded-[5px] text-[18px] text-white"
+            >
+              <div className="avatar">
+                <div className="w-8 rounded-full">
+                  <img src={selectedChain.logoURI} alt={selectedChain.symbol} />
+                </div>
+              </div>
+            </label>
             <button
-              tabIndex={0}
+              onClick={disconnectWallet}
               className="md:hidden flex justify-center items-center bg-green-500 py-[9px] px-[10px] rounded-[5px] text-[18px] text-white"
             >
               <FiCheck />
             </button>
-            <ul tabIndex={1} className="dropdown-content menu p-2 shadow bg-[#000]/[0.6] rounded-box w-52 text-white">
-              <li>
-                <a onClick={disconnectWallet} className="btn btn-ghost gap-2">
-                  {' '}
-                  <FiLogOut /> Disconnect
-                </a>
-              </li>
-            </ul>
           </div>
         )}
       </Transition>
       <ProviderSelectModal isOpen={showProviderModal} onClose={() => setShowProviderModal(false)} />
+      <input type="checkbox" id="chain-modal" className="modal-toggle" />
+      <div className="modal">
+        <div className="modal-box relative bg-[#000]">
+          <label htmlFor="chain-modal" className="btn btn-sm btn-circle absolute right-2 top-2">
+            <FiX />
+          </label>
+          <ul className="menu p-2 shadow bg-[#000]/[0.6] rounded-box w-full text-white">
+            {_.map(Object.keys(chains), (key, index) => (
+              <li key={index}>
+                <label htmlFor="chain-modal" className="gap-2" onClick={() => switchChain(hexValue(parseInt(key)), chains)}>
+                  <div className="avatar">
+                    <div className="w-8 rounded-full">
+                      <img src={chains[key as keyof typeof chains].logoURI} alt={chains[key as keyof typeof chains].symbol} />
+                    </div>
+                  </div>
+                  {chains[key as keyof typeof chains].name}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </>
   );
 }

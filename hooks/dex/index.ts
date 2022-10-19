@@ -6,6 +6,7 @@ import { formatEther } from '@ethersproject/units';
 import { ChainId, Fetcher, Pair, TokenAmount, WETH } from 'quasar-sdk-core';
 import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { abi as pairAbi } from 'quasar-v1-core/artifacts/contracts/QuasarPair.sol/QuasarPair.json';
+import { abi as factoryAbi } from 'quasar-v1-core/artifacts/contracts/QuasarFactory.sol/QuasarFactory.json';
 import { Interface } from '@ethersproject/abi';
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
@@ -13,7 +14,9 @@ import { ListingModel } from '../../api/models/dex';
 import { useWeb3Context } from '../../contexts/web3';
 import rpcCall from '../../api/rpc';
 import chains from '../../assets/chains.json';
-import { fetchPriceHistoryForPair } from '../../api/dex';
+import { fetchPriceHistoryForPair, fetchSwapEventsForPairPerPeriod } from '../../api/dex';
+import whitelist from '../../assets/whitelist.json';
+import factories from '../../assets/factories.json';
 
 const monthLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -347,4 +350,76 @@ export const obtainLPDetailsFromPair = (pair: string, chainId: number, account: 
     }
   }, [pair, chainId, account]);
   return lpDetails;
+};
+
+export const fetchPairVolumeInUSDWithGivenPeriod = (pair: string, chainId: number, period: number = 60 * 60 * 24 * 1000) => {
+  const [usdVolume, setUSDVolume] = useState<number>(0);
+
+  useEffect(() => {
+    (async () => {
+      const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+      const pairAbiInterface = new Interface(pairAbi);
+      const factoryAbiInterface = new Interface(factoryAbi);
+      const swapsWithinPeriod = await fetchSwapEventsForPairPerPeriod(pair, chainId, period);
+      const whitelistedPeggedTokens = whitelist[chainId as unknown as keyof typeof whitelist];
+      const factory = factories[chainId as unknown as keyof typeof factories];
+
+      const token0Hash = pairAbiInterface.getSighash('token0()');
+      const token1Hash = pairAbiInterface.getSighash('token1()');
+      let token0Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token0Hash }, 'latest'] });
+      let token1Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token1Hash }, 'latest'] });
+      token0Call = hexStripZeros(token0Call);
+      token1Call = hexStripZeros(token1Call);
+
+      let priceOfToken0InUSD = 0;
+      let priceOfToken1InUSD = 0;
+
+      if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token0Call.toLowerCase())) {
+        priceOfToken0InUSD = 1;
+      } else {
+        for (const token of whitelistedPeggedTokens) {
+          const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token0Call]);
+          const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
+
+          if (pairCall !== AddressZero) {
+            const token0 = await Fetcher.fetchTokenData(chainId, token, url);
+            const token1 = await Fetcher.fetchTokenData(chainId, token0Call, url);
+            const pairObj = await Fetcher.fetchPairData(token0, token1, url);
+            priceOfToken0InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+          }
+        }
+      }
+
+      if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token1Call.toLowerCase())) {
+        priceOfToken1InUSD = 1;
+      } else {
+        for (const token of whitelistedPeggedTokens) {
+          const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token1Call]);
+          const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
+
+          if (pairCall !== AddressZero) {
+            const token0 = await Fetcher.fetchTokenData(chainId, token, url);
+            const token1 = await Fetcher.fetchTokenData(chainId, token1Call, url);
+            const pairObj = await Fetcher.fetchPairData(token0, token1, url);
+            priceOfToken1InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+          }
+        }
+      }
+      const token0Data = await Fetcher.fetchTokenData(chainId, token0Call, url);
+      const token1Data = await Fetcher.fetchTokenData(chainId, token1Call, url);
+      const volumeInUSD = _.map(
+        swapsWithinPeriod,
+        (swap) =>
+          (_.divide(parseInt(swap.amount0In), Math.pow(10, token0Data.decimals)) +
+            _.divide(parseInt(swap.amount0Out), Math.pow(10, token0Data.decimals))) *
+            priceOfToken0InUSD +
+          (_.divide(parseInt(swap.amount1In), Math.pow(10, token1Data.decimals)) +
+            _.divide(parseInt(swap.amount1Out), Math.pow(10, token1Data.decimals))) *
+            priceOfToken1InUSD
+      ).reduce((prev, curr) => _.add(prev, curr), 0);
+
+      setUSDVolume(volumeInUSD);
+    })();
+  }, [pair, chainId, period]);
+  return usdVolume;
 };

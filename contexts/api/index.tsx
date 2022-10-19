@@ -3,13 +3,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import _ from 'lodash';
 import { ListingModel } from '../../api/models/dex';
 import { useWeb3Context } from '../web3';
-import { fetchLiquidityPoolsForUser, fetchListing } from '../../api/dex';
+import { fetchLiquidityPoolsForUser, fetchListing, fetchTopPairs } from '../../api/dex';
 import { convertListingToDictionary } from '../../api/models/utils';
 
 type APIContextType = {
   tokensListing: Array<ListingModel>;
   tokensListingAsDictionary: { [key: string]: ListingModel };
   liquidityPoolsForUser: Array<string>;
+  topPairs: Array<string>;
   importToken: (model: ListingModel) => void;
   importPool: (pool: string) => void;
 };
@@ -21,6 +22,7 @@ export const APIContextProvider = ({ children }: any) => {
   const [tokensListing, setTokensListing] = useState<Array<ListingModel>>([]);
   const [tokensListingAsDictionary, setTokensListingAsDictionary] = useState<{ [key: string]: ListingModel }>({});
   const [liquidityPoolsForUser, setLiquidityPoolsForUser] = useState<Array<string>>([]);
+  const [topPairs, setTopPairs] = useState<Array<string>>([]);
 
   const importToken = useCallback((model: ListingModel) => {
     if (!_.includes(tokensListing, model)) setTokensListing((models) => [...models, model]);
@@ -31,9 +33,13 @@ export const APIContextProvider = ({ children }: any) => {
   }, []);
 
   useEffect(() => {
-    fetchListing(chainId || 97)
-      .then(setTokensListing)
-      .catch(console.log);
+    (async () => {
+      const listing = await fetchListing(chainId || 97);
+      const pairs = await fetchTopPairs(chainId || 97);
+
+      setTokensListing(listing);
+      setTopPairs(pairs);
+    })();
   }, [chainId]);
 
   useEffect(() => {
@@ -51,7 +57,7 @@ export const APIContextProvider = ({ children }: any) => {
   }, [active, chainId, account]);
 
   return (
-    <APIContext.Provider value={{ tokensListing, tokensListingAsDictionary, liquidityPoolsForUser, importToken, importPool }}>
+    <APIContext.Provider value={{ tokensListing, tokensListingAsDictionary, liquidityPoolsForUser, importToken, importPool, topPairs }}>
       {children}
     </APIContext.Provider>
   );

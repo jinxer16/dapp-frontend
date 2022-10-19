@@ -14,3 +14,15 @@ export interface SyncModel {
   chainId: string;
   timestamp: number;
 }
+
+export interface SwapModel {
+  pair: string;
+  amount0In: string;
+  amount1In: string;
+  amount0Out: string;
+  amount1Out: string;
+  to: string;
+  transactionHash: string;
+  chainId: string;
+  timestamp: number;
+}

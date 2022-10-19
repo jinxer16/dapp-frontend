@@ -400,7 +400,7 @@ const FindOtherLPRoute = ({ routeChange }: any) => {
   return (
     <div className="bg-[#000000]/50 border-[#ffeb82] border-[1px] rounded-[20px] flex justify-center items-center py-[19px] w-full md:w-1/3 md:max-h-[600px] font-Montserrat">
       <div className="flex flex-col justify-evenly items-center w-full gap-5">
-        <div className="flex justify-start items-center gap-3 w-full border-b-[0.5px] border-[#dcdcdc]/20 px-[10px]">
+        <div className="flex justify-between items-center gap-3 w-full border-b-[0.5px] border-[#dcdcdc]/20 px-[10px]">
           <div>
             <button onClick={() => routeChange(LiquidityRoutes.LIQUIDITY_POOLS)} className="bg-transparent text-white text-[23px]">
               <IoIosUndo />
@@ -410,6 +410,9 @@ const FindOtherLPRoute = ({ routeChange }: any) => {
             <span className="text-white text-[20px] font-Montserrat font-semibold">Import Liquidity Pool</span>
             <span className="text-white text-[14px] font-Montserrat">Import an existing pool</span>
           </div>
+          <button onClick={() => setIsSettingsModalVisible(true)} className="bg-transparent text-white text-[23px]">
+            <FiSettings />
+          </button>
         </div>
         <div className="flex flex-col justify-center items-center gap-7 w-full px-4 font-Montserrat text-white">
           <button onClick={() => setIsFirstTokensListModalVisible(true)} className="btn w-full rounded-[25px] flex justify-between items-center">
@@ -454,6 +457,7 @@ const FindOtherLPRoute = ({ routeChange }: any) => {
           </div>
         </div>
       </div>
+      <SwapSettingsModal isOpen={isSettingsModalVisible} onClose={() => setIsSettingsModalVisible(false)} />
       <TokensListModal
         isVisible={isFirstTokensListModalVisible}
         onClose={() => setIsFirstTokensListModalVisible(false)}
