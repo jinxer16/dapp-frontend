@@ -50,7 +50,7 @@ export default function Staking() {
           </div> */}
         </div>
 
-        <div className="overflow-auto hidden-scrollbar">
+        <div className="overflow-auto hidden-scrollbar flex-1">
           {activeRoute === Subroutes.REGULAR_POOLS && <RegularStakingPools />}
           {activeRoute === Subroutes.CREATE_NEW_POOL && <CreateNewStakingPool />}
           {activeRoute === Subroutes.MY_POOLS && <PersonalPoolsAndEarnings />}

@@ -9,10 +9,10 @@ import _ from 'lodash';
 import { Fetcher, Token } from 'quasar-sdk-core';
 import { ToastContainer, toast } from 'react-toastify';
 import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/StakingPool.sol/StakingPool.json';
-import { StakeEventModel } from '../../api/models/staking';
-import { fetchStakeEventPoolAndReward, fetchStakingPoolInfo } from '../../hooks/staking';
-import { useWeb3Context } from '../../contexts/web3';
-import chains from '../../assets/chains.json';
+import { StakeEventModel } from '../../../api/models/staking';
+import { fetchStakeEventPoolAndReward, fetchStakingPoolInfo } from '../../../hooks/staking';
+import { useWeb3Context } from '../../../contexts/web3';
+import chains from '../../../assets/chains.json';
 
 type IStakeEventsTableBodyItemProps = {
   data: StakeEventModel;
@@ -40,6 +40,33 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
           <>
             <span className="text-white font-Montserrat text-[16px]">You have successfully withdrawn your reward</span>{' '}
             <a href={chain.explorer.concat(`/tx/${withdrawalResponse.transactionHash}`)} target="_blank" rel="noreferrer">
+              View on explorer
+            </a>
+          </>,
+          { type: 'success' }
+        );
+        setIsLoading(false);
+      }
+    } catch (error: any) {
+      setIsLoading(false);
+      toast(error.message, { type: 'error' });
+      console.log(error);
+    }
+  }, [chain.explorer, data.stake, library?.givenProvider, poolInfo.id]);
+
+  const unstake = useCallback(async () => {
+    try {
+      if (poolInfo.id) {
+        setIsLoading(true);
+        const provider = new Web3Provider(library?.givenProvider);
+        const stakingPoolContract = new Contract(poolInfo.id, stakingPoolAbi, provider.getSigner());
+        const unstakeTx = await stakingPoolContract.unstakeAll(hexStripZeros(data.stake));
+        const unstakeResponse = await unstakeTx.wait();
+
+        toast(
+          <>
+            <span className="text-white font-Montserrat text-[16px]">You have successfully unstaked your tokens</span>{' '}
+            <a href={chain.explorer.concat(`/tx/${unstakeResponse.transactionHash}`)} target="_blank" rel="noreferrer">
               View on explorer
             </a>
           </>,
@@ -94,7 +121,7 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
           <button onClick={withdrawal} disabled={!poolInfo || isLoading} className={`btn btn-primary ${isLoading ? 'loading' : ''}`}>
             Withdraw
           </button>
-          <button disabled={!poolInfo || isLoading} className="btn btn-secondary">
+          <button onClick={unstake} disabled={!poolInfo || isLoading} className="btn btn-secondary">
             Unstake
           </button>
         </div>

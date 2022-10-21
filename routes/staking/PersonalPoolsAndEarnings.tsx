@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import StakingPoolCard from '../../components/Staking/StakingPoolCard';
 import { useAPIContext } from '../../contexts/api';
-import StakeEventsTableBodyItem from '../../components/StakeEventsTableBodyItem';
+import StakeEventsTableBodyItem from '../../components/Staking/StakeEventsTableBodyItem';
 
 export default function PersonalPoolsAndEarnings() {
   const { accountStakingPools, stakesByAccount } = useAPIContext();
