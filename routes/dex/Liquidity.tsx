@@ -100,8 +100,8 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
   const [firstSelectedToken, setFirstSelectedToken] = useState<ListingModel>({} as ListingModel);
   const [secondSelectedToken, setSecondSelectedToken] = useState<ListingModel>({} as ListingModel);
 
-  const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken, [isLoading]);
-  const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken, [isLoading]);
+  const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken.address, [isLoading]);
+  const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken.address, [isLoading]);
 
   const [playSuccess] = useSound(successFx);
   const [playError] = useSound(errorFx);
