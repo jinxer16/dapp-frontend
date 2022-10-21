@@ -24,14 +24,20 @@ export default function EventsTableBodyItem({ event }: IEventsTableBodyItemProps
     <div className="table-row text-[#fff] h-[50px] font-poppins hover:bg-[#000]/30 cursor-pointer">
       <div className="table-cell text-center px-2">
         <div className="flex justify-start gap-1 items-center">
-        <span>{label} {lpDetails.token0Symbol} and {lpDetails.token1Symbol}</span>
-        <a href={chain.explorer.concat(`/tx/${event.transactionHash}`)} target="_blank" rel="noreferrer">
-          <FiExternalLink className="text-[blue]/50" />
-        </a>
+          <span>
+            {label} {lpDetails.token0Symbol} and {lpDetails.token1Symbol}
+          </span>
+          <a href={chain.explorer.concat(`/tx/${event.transactionHash}`)} target="_blank" rel="noreferrer">
+            <FiExternalLink className="text-[blue]/50" />
+          </a>
         </div>
       </div>
-      <div className="table-cell text-center">{_.divide(parseInt(event.amount1), Math.pow(10, lpDetails.token0Decimals)).toPrecision(4)} {lpDetails.token0Symbol}</div>
-      <div className="table-cell text-center">{_.divide(parseInt(event.amount2), Math.pow(10, lpDetails.token1Decimals)).toPrecision(4)} {lpDetails.token1Symbol}</div>
+      <div className="table-cell text-center">
+        {_.divide(parseInt(event.amount1), Math.pow(10, lpDetails.token0Decimals)).toPrecision(4)} {lpDetails.token0Symbol}
+      </div>
+      <div className="table-cell text-center">
+        {_.divide(parseInt(event.amount2), Math.pow(10, lpDetails.token1Decimals)).toPrecision(4)} {lpDetails.token1Symbol}
+      </div>
       <div className="table-cell text-center">
         <Moment fromNow date={new Date(event.timestamp)} />
       </div>

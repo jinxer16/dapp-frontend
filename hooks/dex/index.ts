@@ -115,15 +115,15 @@ export const getInputAmount = (inputToken: ListingModel, outputToken: ListingMod
   return inputAmount;
 };
 
-export const fetchTokenBalanceForConnectedWallet = (token: ListingModel, deps: Array<any> = []) => {
+export const fetchTokenBalanceForConnectedWallet = (token: string, deps: Array<any> = []) => {
   const [balance, setBalance] = useState<string>('0');
   const { active, account, chainId } = useWeb3Context();
   useEffect(() => {
-    if (active && !!account && !!chainId && token && token.address) {
+    if (active && !!account && !!chainId && token && token) {
       (async () => {
         const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
-        if (token.address !== AddressZero) {
-          const t = await Fetcher.fetchTokenData(chainId, token.address, url);
+        if (token !== AddressZero) {
+          const t = await Fetcher.fetchTokenData(chainId, token, url);
           const erc20Interface = new Interface(erc20Abi);
           const balanceOf = erc20Interface.encodeFunctionData('balanceOf(address)', [account]);
           const call = await rpcCall(url, { method: 'eth_call', params: [{ to: t.address, data: balanceOf }, 'latest'] });

@@ -5,11 +5,16 @@ import { EventModel, ListingModel } from '../../api/models/dex';
 import { useWeb3Context } from '../web3';
 import { fetchEvents, fetchLiquidityPoolsForUser, fetchListing, fetchTopPairs } from '../../api/dex';
 import { convertListingToDictionary } from '../../api/models/utils';
+import { fetchAccountStakes, fetchAccountStakingPools, fetchStakingPools } from '../../api/staking';
+import { StakeEventModel } from '../../api/models/staking';
 
 type APIContextType = {
   tokensListing: Array<ListingModel>;
+  stakingPools: Array<string>;
+  accountStakingPools: Array<string>;
   tokensListingAsDictionary: { [key: string]: ListingModel };
   liquidityPoolsForUser: Array<string>;
+  stakesByAccount: Array<StakeEventModel>;
   topPairs: Array<string>;
   importToken: (model: ListingModel) => void;
   importPool: (pool: string) => void;
@@ -19,6 +24,9 @@ type APIContextType = {
     items: Array<EventModel>;
   };
   eventsDataUpdate: (page: number, type: 'all' | 'swap' | 'burn' | 'mint') => void;
+  fetchPools: (page: number) => void;
+  fetchAccountPools: (page: number) => void;
+  fetchStakesByAccount: (page: number) => void;
 };
 
 const APIContext = createContext({} as APIContextType);
@@ -26,7 +34,10 @@ const APIContext = createContext({} as APIContextType);
 export const APIContextProvider = ({ children }: any) => {
   const { chainId, active, account } = useWeb3Context();
   const [tokensListing, setTokensListing] = useState<Array<ListingModel>>([]);
+  const [stakingPools, setStakingPools] = useState<Array<string>>([]);
+  const [accountStakingPools, setAccountStakingPools] = useState<Array<string>>([]);
   const [tokensListingAsDictionary, setTokensListingAsDictionary] = useState<{ [key: string]: ListingModel }>({});
+  const [stakesByAccount, setStakesByAccount] = useState<Array<StakeEventModel>>([]);
   const [liquidityPoolsForUser, setLiquidityPoolsForUser] = useState<Array<string>>([]);
   const [topPairs, setTopPairs] = useState<Array<string>>([]);
   const [events, setEvents] = useState<{
@@ -56,6 +67,33 @@ export const APIContextProvider = ({ children }: any) => {
     if (!_.includes(liquidityPoolsForUser, pool)) setLiquidityPoolsForUser((pools) => [...pools, pool]);
   }, []);
 
+  const fetchPools = useCallback(
+    (page: number = 1) => {
+      fetchStakingPools(chainId || 97, page)
+        .then(setStakingPools)
+        .catch(console.log);
+    },
+    [chainId]
+  );
+
+  const fetchAccountPools = useCallback(
+    (page: number = 1) => {
+      fetchAccountStakingPools(chainId || 97, account as string, page)
+        .then(setAccountStakingPools)
+        .catch(console.log);
+    },
+    [chainId, account]
+  );
+
+  const fetchStakesByAccount = useCallback(
+    (page: number = 1) => {
+      fetchAccountStakes(chainId || 97, account as string, page)
+        .then(setStakesByAccount)
+        .catch(console.log);
+    },
+    [chainId, account]
+  );
+
   useEffect(() => {
     (async () => {
       const listing = await fetchListing(chainId || 97);
@@ -64,6 +102,9 @@ export const APIContextProvider = ({ children }: any) => {
       setTokensListing(listing);
       setTopPairs(pairs);
       eventsDataUpdate(1, 'all');
+      fetchPools(1);
+      fetchAccountPools(1);
+      fetchStakesByAccount(1);
     })();
   }, [chainId]);
 
@@ -83,7 +124,22 @@ export const APIContextProvider = ({ children }: any) => {
 
   return (
     <APIContext.Provider
-      value={{ tokensListing, tokensListingAsDictionary, liquidityPoolsForUser, importToken, importPool, topPairs, eventsDataUpdate, events }}
+      value={{
+        tokensListing,
+        tokensListingAsDictionary,
+        liquidityPoolsForUser,
+        importToken,
+        importPool,
+        topPairs,
+        eventsDataUpdate,
+        events,
+        stakingPools,
+        fetchPools,
+        accountStakingPools,
+        fetchAccountPools,
+        stakesByAccount,
+        fetchStakesByAccount
+      }}
     >
       {children}
     </APIContext.Provider>

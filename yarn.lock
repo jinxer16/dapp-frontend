@@ -6215,6 +6215,11 @@ vary@^1, vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
+vefi-token-launchpad-staking@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/vefi-token-launchpad-staking/-/vefi-token-launchpad-staking-1.0.2.tgz#f71164a1d91edab8a1dc9781662b7fe708ec0eb2"
+  integrity sha512-7nIwm/GZ8+Mq1KYdfISuANocaZ+RN4/t6qDVq/ncLQwenfhsC5NcTg1JButknMCyaUqv2bHQQq1YvCW5xrJlQw==
+
 verror@1.10.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/verror/-/verror-1.10.0.tgz#3a105ca17053af55d6e270c1f8288682e18da400"
