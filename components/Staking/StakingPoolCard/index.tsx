@@ -108,7 +108,7 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
           </div>
           <div className="card-actions flex-col w-full justify-evenly gap-3">
             <label
-              htmlFor="stake-modal"
+              htmlFor={`${pool}-modal`}
               className="bg-[#0cedfc] py-[8px] px-[12px] rounded-[10px] w-full flex justify-center items-center cursor-pointer"
             >
               <span className="text-[#2b2828] font-[700] text-[15px]">Stake</span>
@@ -152,17 +152,17 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
           </div>
         </div>
       </div>
-      <input type="checkbox" id="stake-modal" className="modal-toggle" />
+      <input type="checkbox" id={`${pool}-modal`} className="modal-toggle" />
       <div className="modal modal-bottom md:modal-middle font-Montserrat text-white/75">
         <div className="modal-box relative bg-[#000]">
-          <label htmlFor="stake-modal" className="btn btn-sm btn-circle absolute right-2 top-2">
+          <label htmlFor={`${pool}-modal`} className="btn btn-sm btn-circle absolute right-2 top-2">
             <FiX />
           </label>
           <div className="flex flex-col w-full justify-center items-center gap-3">
             <span className="font-[900] uppercase">Select Token</span>
             <div className="flex justify-center items-center gap-4 w-full">
               <label
-                htmlFor="stake-modal"
+                htmlFor={`${pool}-modal`}
                 className="btn-ghost flex flex-col justify-center items-center gap-1 cursor-pointer"
                 onClick={() => {
                   setSelectedToken(poolDetails.tokenA);
@@ -186,7 +186,7 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
 
               <label
                 className="flex flex-col justify-center items-center gap-1 cursor-pointer"
-                htmlFor="stake-modal"
+                htmlFor={`${pool}-modal`}
                 onClick={() => {
                   setSelectedToken(poolDetails.tokenB);
                   setShowStakeModal(true);
