@@ -26,3 +26,13 @@ export interface SwapModel {
   chainId: string;
   timestamp: number;
 }
+
+export interface EventModel {
+  chainId: string;
+  amount1: string;
+  amount2: string;
+  pair: string;
+  eventName: 'swap' | 'mint' | 'burn';
+  timestamp: number;
+  transactionHash: string;
+}

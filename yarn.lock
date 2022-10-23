@@ -4197,6 +4197,11 @@ moment@^2.24.0, moment@^2.29.2:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
   integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
 
+moment@^2.29.4:
+  version "2.29.4"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
+  integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -5283,6 +5288,11 @@ react-loader-spinner@^5.3.4:
     styled-components "^5.3.5"
     styled-tools "^1.7.2"
 
+react-moment@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/react-moment/-/react-moment-1.1.2.tgz#a9b157c58ddd226a2f746e5ca43415b24a17b6af"
+  integrity sha512-lfb+shYXI2tXlQrNUpNr05/1D/kzFj8Isbfp89DQrpZk0fs2JIAnLHWETR0hQS9zvtzwLWlVv0wKLffbue5HoA==
+
 react-toastify@^9.0.8:
   version "9.0.8"
   resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-9.0.8.tgz#3876c89fc6211a29027b3075010b5ec39ebe4f7e"
@@ -6204,6 +6214,16 @@ vary@^1, vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
+
+vefi-multi-sig@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/vefi-multi-sig/-/vefi-multi-sig-1.0.0.tgz#6f526fe2fbc37815561d8c8c0efd6051df3310d9"
+  integrity sha512-UpZpUtTZSsX9W1ujsZgwp07JpsKSzIxHV4A2S/BujM+8ndh0D7Xu49wAsNhVueM5mtTIx7d/FFkUPmhnrjzKzw==
+
+vefi-token-launchpad-staking@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/vefi-token-launchpad-staking/-/vefi-token-launchpad-staking-1.0.2.tgz#f71164a1d91edab8a1dc9781662b7fe708ec0eb2"
+  integrity sha512-7nIwm/GZ8+Mq1KYdfISuANocaZ+RN4/t6qDVq/ncLQwenfhsC5NcTg1JButknMCyaUqv2bHQQq1YvCW5xrJlQw==
 
 verror@1.10.0:
   version "1.10.0"

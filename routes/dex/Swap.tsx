@@ -63,8 +63,8 @@ export default function Swap() {
   const token1Price = getToken1Price(firstSelectedToken, secondSelectedToken, chainId || 97);
   const [chartPeriodInt, setChartPeriodInt] = useState<number>(60 * 60 * 24);
 
-  const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken, [isSwapLoading]);
-  const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken, [isSwapLoading]);
+  const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken.address, [isSwapLoading]);
+  const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken.address, [isSwapLoading]);
   const {
     chartData,
     loading: chartDataLoading,

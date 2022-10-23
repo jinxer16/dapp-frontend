@@ -8,7 +8,7 @@ type TokensListItemProps = {
 };
 
 export default function TokensListItem({ onClick, disabled, model }: TokensListItemProps) {
-  const balance = fetchTokenBalanceForConnectedWallet(model);
+  const balance = fetchTokenBalanceForConnectedWallet(model.address);
   return (
     <button disabled={disabled} onClick={onClick} className="flex justify-center items-start px-0 w-full overflow-auto font-poppins">
       <div className="bg-[#161525]/[.6] rounded-tr-[15px] w-[60px] h-full p-0 flex flex-col">

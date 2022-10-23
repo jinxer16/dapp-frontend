@@ -115,15 +115,15 @@ export const getInputAmount = (inputToken: ListingModel, outputToken: ListingMod
   return inputAmount;
 };
 
-export const fetchTokenBalanceForConnectedWallet = (token: ListingModel, deps: Array<any> = []) => {
+export const fetchTokenBalanceForConnectedWallet = (token: string, deps: Array<any> = []) => {
   const [balance, setBalance] = useState<string>('0');
   const { active, account, chainId } = useWeb3Context();
   useEffect(() => {
-    if (active && !!account && !!chainId && token && token.address) {
+    if (active && !!account && !!chainId && token && token) {
       (async () => {
         const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
-        if (token.address !== AddressZero) {
-          const t = await Fetcher.fetchTokenData(chainId, token.address, url);
+        if (token !== AddressZero) {
+          const t = await Fetcher.fetchTokenData(chainId, token, url);
           const erc20Interface = new Interface(erc20Abi);
           const balanceOf = erc20Interface.encodeFunctionData('balanceOf(address)', [account]);
           const call = await rpcCall(url, { method: 'eth_call', params: [{ to: t.address, data: balanceOf }, 'latest'] });
@@ -311,7 +311,9 @@ export const obtainLPDetailsFromPair = (pair: string, chainId: number, account: 
     token1: '',
     token0Symbol: '',
     token1Symbol: '',
-    accountBalance: 0
+    accountBalance: 0,
+    token0Decimals: 18,
+    token1Decimals: 18
   });
 
   useEffect(() => {
@@ -335,13 +337,18 @@ export const obtainLPDetailsFromPair = (pair: string, chainId: number, account: 
           [token0SymbolCall] = erc20AbiInterface.decodeFunctionResult('symbol()', token0SymbolCall);
           [token1SymbolCall] = erc20AbiInterface.decodeFunctionResult('symbol()', token1SymbolCall);
 
+          const tk1 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token0Call), url);
+          const tk2 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token1Call), url);
+
           setLpDetails({
             id: pair,
             token0: hexStripZeros(token0Call),
             token1: hexStripZeros(token1Call),
             token0Symbol: token0SymbolCall,
             token1Symbol: token1SymbolCall,
-            accountBalance: parseFloat(formatEther(balanceOfCall))
+            accountBalance: parseFloat(formatEther(balanceOfCall)),
+            token0Decimals: tk1.decimals,
+            token1Decimals: tk2.decimals
           });
         } catch (error: any) {
           console.log(error);

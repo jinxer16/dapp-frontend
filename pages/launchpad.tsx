@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FaParachuteBox, FaCrown, FaTelegram } from 'react-icons/fa';
-import { FiShield, FiLock, FiAlertTriangle, FiTwitter, FiLayout, FiDollarSign, FiSettings, FiFile, FiNavigation } from 'react-icons/fi';
-import { IoIosRocket } from 'react-icons/io';
+import { FaParachuteBox } from 'react-icons/fa';
+import { FiShield, FiLock, FiDollarSign, FiSettings, FiNavigation } from 'react-icons/fi';
 import { TiArrowShuffle } from 'react-icons/ti';
 import { NavLink } from '../components/LaunchPad';
 import LaunchpadNavbar from '../components/LaunchpadNavbar';

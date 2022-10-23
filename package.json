@@ -11,6 +11,7 @@
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
+    "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/constants": "^5.7.0",
     "@ethersproject/contracts": "^5.7.0",
@@ -33,6 +34,7 @@
     "jsbi": "^4.3.0",
     "lodash": "^4.17.21",
     "millify": "^5.0.1",
+    "moment": "^2.29.4",
     "next": "12.1.6",
     "postcss": "^8.4.16",
     "quasar-sdk-core": "^1.0.2",
@@ -43,10 +45,13 @@
     "react-dom": "18.1.0",
     "react-icons": "^4.3.1",
     "react-loader-spinner": "^5.3.4",
+    "react-moment": "^1.1.2",
     "react-toastify": "^9.0.8",
     "tailwindcss": "^3.1.8",
     "url-loader": "^4.1.1",
     "use-sound": "^4.0.1",
+    "vefi-multi-sig": "^1.0.0",
+    "vefi-token-launchpad-staking": "^1.0.2",
     "web3": "^1.8.0"
   },
   "devDependencies": {

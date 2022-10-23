@@ -119,7 +119,7 @@ export default function Header() {
                     </div>
                     <span className="text-white text-[18px] ml-[2px]">{selectedChain.name}</span> <FiChevronDown />
                   </button>
-                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-[#000]/[0.6] rounded-box w-full text-white">
+                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-[#000]/[0.85] rounded-box w-full text-white">
                     {_.map(Object.keys(chains), (key, index) => (
                       <li key={index}>
                         <a className="gap-2" onClick={() => switchChain(hexValue(parseInt(key)), chains)}>
@@ -224,7 +224,7 @@ export default function Header() {
       </Transition>
       <ProviderSelectModal isOpen={showProviderModal} onClose={() => setShowProviderModal(false)} />
       <input type="checkbox" id="chain-modal" className="modal-toggle" />
-      <div className="modal">
+      <div className="modal modal-bottom">
         <div className="modal-box relative bg-[#000]">
           <label htmlFor="chain-modal" className="btn btn-sm btn-circle absolute right-2 top-2">
             <FiX />
