@@ -116,11 +116,13 @@ export const APIContextProvider = ({ children }: any) => {
       setTopPairs(pairs);
       eventsDataUpdate(1, 'all');
       fetchPools(1);
-      fetchAccountPools(1);
-      fetchStakesByAccount(1);
-      fetchMultiSigsByAccount(1);
+      if (!!account) {
+        fetchAccountPools(1);
+        fetchStakesByAccount(1);
+        fetchMultiSigsByAccount(1);
+      }
     })();
-  }, [chainId]);
+  }, [chainId, account]);
 
   useEffect(() => {
     if (tokensListing.length > 0) {

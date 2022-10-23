@@ -3,7 +3,7 @@ import { FiPlus, FiSearch, FiChevronRight, FiKey } from 'react-icons/fi';
 import _ from 'lodash';
 import { formatEthAddress } from 'eth-address';
 import { useAPIContext } from '../contexts/api';
-import { CreateMultiSigWallet } from '../routes/multisig';
+import { CreateMultiSigWallet, MultiSigItem } from '../routes/multisig';
 
 enum Routes {
   CREATE_WALLET,
@@ -14,11 +14,12 @@ enum Routes {
 export default function MultiSig() {
   const { multiSigsByAccount } = useAPIContext();
   const [route, setRoute] = useState<Routes>(Routes.CREATE_WALLET);
+  const [wallet, setWallet] = useState<string>('');
   return (
-    <div className="flex flex-col md:flex-row w-screen backdrop-opacity-10 backdrop-invert bg-[#05325B]/70 h-full overflow-auto hidden-scrollbar gap-2">
+    <div className="flex flex-col md:flex-row w-screen backdrop-opacity-10 backdrop-invert bg-[#05325B]/70 h-full overflow-auto hidden-scrollbar">
       <div className="w-full md:w-80 py-10 px-5 md:h-full bg-[#161525] text-white flex flex-col gap-2 md:gap-4">
         <div className="flex justify-center items-center gap-3 w-full">
-          <button className="btn btn-ghost flex flex-col gap-2">
+          <button onClick={() => setRoute(Routes.CREATE_WALLET)} className="btn btn-ghost flex flex-col gap-2">
             <FiPlus className="md:text-[20px] text-[16px]" />
             <span className="font-Montserrat">Create</span>
           </button>
@@ -30,10 +31,26 @@ export default function MultiSig() {
         <div className="md:menu flex flex-row justify-center items-center gap-1 w-full px-[2px] md:py-[12px]">
           {_.map(multiSigsByAccount, (multisig, index) => (
             <div key={index} className="md:w-full">
-              <button className="hidden md:flex justify-center items-center w-full btn btn-ghost font-poppins gap-2">
+              <button
+                onClick={() => {
+                  setWallet(multisig);
+                  setRoute(Routes.VIEW_WALLET);
+                }}
+                className={`hidden md:flex justify-center items-center btn font-poppins gap-2 btn-wide ${
+                  wallet === multisig && route === Routes.VIEW_WALLET ? 'btn-primary' : 'btn-ghost'
+                }`}
+              >
                 {formatEthAddress(multisig, 6)} <FiChevronRight />{' '}
               </button>
-              <button className="md:hidden flex justify-center items-center btn btn-circle">
+              <button
+                onClick={() => {
+                  setWallet(multisig);
+                  setRoute(Routes.VIEW_WALLET);
+                }}
+                className={`md:hidden flex justify-center items-center btn btn-circle ${
+                  wallet === multisig && route === Routes.VIEW_WALLET ? 'btn-primary' : ''
+                }`}
+              >
                 <FiKey />
               </button>
             </div>
@@ -41,6 +58,7 @@ export default function MultiSig() {
         </div>
       </div>
       {route === Routes.CREATE_WALLET && <CreateMultiSigWallet />}
+      {route === Routes.VIEW_WALLET && <MultiSigItem wallet={wallet} />}
     </div>
   );
 }
