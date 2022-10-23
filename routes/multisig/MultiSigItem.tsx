@@ -13,6 +13,7 @@ import _ from 'lodash';
 import chains from '../../assets/chains.json';
 import rpcCall from '../../api/rpc';
 import { useWeb3Context } from '../../contexts/web3';
+import SendTransactionModal from '../../components/Multisig/SendTransactionModal';
 
 type IMultiSigItemProps = {
   wallet: string;
@@ -28,6 +29,7 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<Array<TransactionModel>>([]);
+  const [showTransactionModal, setShowTransactionModal] = useState<boolean>(false);
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
   const isValidData = useMemo(
     () => isAddress(recipient) && sendAmount > 0 && sendAmount <= parseFloat(etherBalance),
@@ -153,8 +155,11 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
             <div className="stat-value">{_.filter(transactions, (transaction) => transaction[4]).length}</div>
           </div>
         </div>
-        <button className="btn btn-accent px-3 py-2 shadow-lg">Send Transaction</button>
-        <div className="overflow-x-auto w-full px-2">
+        <button onClick={() => setShowTransactionModal(true)} className="btn btn-accent px-3 py-2 shadow-lg">
+          Send Contract Transaction
+        </button>
+        <div className="overflow-x-auto w-full px-2 flex-col justify-start items-center gap-2">
+          <span className="font-Montserrat font-[800]">Transactions</span>
           <table className="table table-zebra table-compact w-full font-poppins">
             <thead>
               <tr>
@@ -175,7 +180,7 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
                   <td>{transaction[2]}</td>
                   <td>{parseInt(transaction[3].toHexString())}</td>
                   <td>{transaction[0]}</td>
-                  <td>{transaction[5]}</td>
+                  <td>{transaction[5].slice(0, 17)}...</td>
                   <td>{formatEther(transaction[6])}</td>
                   <th>
                     <label>
@@ -254,6 +259,15 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
         </div>
       </div>
       <ToastContainer position="top-right" theme="dark" autoClose={5000} />
+      <SendTransactionModal
+        isOpen={showTransactionModal}
+        wallet={wallet}
+        onClose={() => setShowTransactionModal(false)}
+        updateParentState={() => {
+          setIsLoading((val) => !val);
+          setIsActionLoading((val) => !val);
+        }}
+      />
     </div>
   );
 }
