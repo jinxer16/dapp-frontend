@@ -20,7 +20,7 @@ export default function TokensListItem({ onClick, disabled, model }: TokensListI
       </div>
       <div className="flex flex-col flex-1 p-0 h-full">
         <div className="flex justify-between w-full items-center bg-transparent text-[#dcdcdc] px-[8px]">
-          <div className="flex flex-col justify-between gap-1">
+          <div className="flex flex-col justify-start gap-1 items-start">
             <span className="font-[700] text-[25px] uppercase">{model.symbol}</span>
             <span className="font-[500] text-[14px]">{model.name}</span>
           </div>

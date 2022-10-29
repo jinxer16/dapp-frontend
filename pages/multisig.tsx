@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FiPlus, FiSearch, FiChevronRight, FiKey } from 'react-icons/fi';
+import React, { useEffect, useState } from 'react';
+import { FiPlus, FiSearch, FiChevronRight, FiKey, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import _ from 'lodash';
 import { formatEthAddress } from 'eth-address';
 import { useAPIContext } from '../contexts/api';
@@ -12,9 +12,15 @@ enum Routes {
 }
 
 export default function MultiSig() {
-  const { multiSigsByAccount } = useAPIContext();
+  const { multiSigsByAccount, fetchMultiSigsByAccount } = useAPIContext();
   const [route, setRoute] = useState<Routes>(Routes.CREATE_WALLET);
   const [wallet, setWallet] = useState<string>('');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    fetchMultiSigsByAccount(page);
+  }, [fetchMultiSigsByAccount, page]);
+
   return (
     <div className="flex flex-col md:flex-row w-screen backdrop-opacity-10 backdrop-invert bg-[#05325B]/70 h-full overflow-auto hidden-scrollbar">
       <div className="w-full md:w-80 py-10 px-5 md:h-full bg-[#161525] text-white flex flex-col gap-2 md:gap-4">
@@ -29,7 +35,7 @@ export default function MultiSig() {
           </button>
         </div>
         <div className="md:menu flex flex-row justify-center items-center gap-1 w-full px-[2px] md:py-[12px]">
-          {_.map(multiSigsByAccount, (multisig, index) => (
+          {_.map(multiSigsByAccount.items, (multisig, index) => (
             <div key={index} className="md:w-full">
               <button
                 onClick={() => {
@@ -55,6 +61,17 @@ export default function MultiSig() {
               </button>
             </div>
           ))}
+          <div className="flex justify-center items-center gap-2 text-white/70">
+            <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
+              <FiArrowLeft />
+            </button>
+            <span>
+              Page {page} of {Math.ceil(multiSigsByAccount.totalItems / 20)}
+            </span>
+            <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(multiSigsByAccount.totalItems / 20)} className="bg-transparent">
+              <FiArrowRight />
+            </button>
+          </div>
         </div>
       </div>
       {route === Routes.CREATE_WALLET && <CreateMultiSigWallet />}

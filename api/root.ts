@@ -1,5 +1,5 @@
 import axios from 'axios';
 
 export default axios.create({
-  baseURL: 'http://localhost:7755/api'
+  baseURL: 'https://dapps-server.vefinetwork.org/api'
 });

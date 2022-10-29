@@ -1,19 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import _ from 'lodash';
+import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import StakingPoolCard from '../../components/Staking/StakingPoolCard';
 import { useAPIContext } from '../../contexts/api';
 import StakeEventsTableBodyItem from '../../components/Staking/StakeEventsTableBodyItem';
 
 export default function PersonalPoolsAndEarnings() {
-  const { accountStakingPools, stakesByAccount } = useAPIContext();
+  const { accountStakingPools, stakesByAccount, fetchAccountPools } = useAPIContext();
+  const [page, setPage] = useState<number>(1);
+
+  useEffect(() => {
+    fetchAccountPools(page);
+  }, [fetchAccountPools, page]);
+
   return (
     <div className="flex flex-col justify-center items-center gap-8">
-      <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-grow px-[4px]">
-        {_.map(accountStakingPools, (pool, index) => (
-          <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
-            <StakingPoolCard key={index} pool={pool} />
-          </div>
-        ))}
+      <div className="flex flex-col justify-center items-center w-full gap-2">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-grow px-[4px]">
+          {_.map(accountStakingPools.items, (pool, index) => (
+            <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
+              <StakingPoolCard key={index} pool={pool} />
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center items-center gap-2 text-white/70">
+          <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
+            <FiArrowLeft />
+          </button>
+          <span>
+            Page {page} of {Math.ceil(accountStakingPools.totalItems / 20)}
+          </span>
+          <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(accountStakingPools.totalItems / 20)} className="bg-transparent">
+            <FiArrowRight />
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col justify-start items-start w-full md:w-[700px] font-poppins">

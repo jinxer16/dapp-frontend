@@ -2,15 +2,36 @@
   "97": {
     "rpcUrl": "https://data-seed-prebsc-1-s3.binance.org:8545",
     "name": "Binance Smartchain Testnet",
-    "logoURI": "/images/smartchain.png",
+    "logoURI": "/images/binance.webp",
     "symbol": "tBNB",
     "explorer": "https://testnet.bscscan.com"
   },
   "32520": {
-    "rpcUrl": "https://mainnet-rpc.brisescan.com",
+    "rpcUrl": "https://rpc.icecreamswap.com",
     "name": "Bitgert Mainnet",
-    "logoURI": "/images/brise.png",
+    "logoURI": "/images/bitgert.webp",
     "symbol": "BRISE",
     "explorer": "https://brisescan.com"
+  },
+  "311": {
+    "rpcUrl": "https://mainapi.omaxray.com",
+    "name": "Omax Chain Mainnet",
+    "symbol": "OMAX",
+    "logoURI": "/images/omax.webp",
+    "explorer": "https://omaxray.com"
+  },
+  "56": {
+    "rpcUrl": "https://bsc-dataseed4.defibit.io",
+    "name": "Binance Smartchain",
+    "logoURI": "/images/binance.webp",
+    "explorer": "https://bscscan.com",
+    "symbol": "BNB"
+  },
+  "86": {
+    "name": "Gatechain",
+    "rpcUrl": "https://evm.gatenode.cc",
+    "explorer": "https://gatescan.org",
+    "logoURI": "/images/gatechain.webp",
+    "symbol": "GT"
   }
 }

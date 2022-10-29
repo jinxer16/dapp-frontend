@@ -41,7 +41,7 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
       setIsLoading(true);
       const provider = new Web3Provider(library?.givenProvider);
       const multisigContract = new Contract(wallet, multiSigAbi, provider.getSigner());
-      const transferEtherTx = await multisigContract.transferEther(recipient, { value: parseEther(sendAmount.toString()) });
+      const transferEtherTx = await multisigContract.transferEther(recipient, parseEther(sendAmount.toString()));
       const transferResponse = await transferEtherTx.wait();
 
       toast(

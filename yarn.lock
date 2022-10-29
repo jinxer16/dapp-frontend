@@ -4796,10 +4796,10 @@ qs@~6.5.2:
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.3.tgz#3aeeffc91967ef6e35c0e488ef46fb296ab76aad"
   integrity sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==
 
-quasar-sdk-core@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/quasar-sdk-core/-/quasar-sdk-core-1.0.2.tgz#301d03142fe5e8941a3eda4db862ae9c96dedaa8"
-  integrity sha512-yeOj+5838VsVr/3FzQ0TDXqEbVR9bxtIVZ6lSqiyWPGAHeGQSBpiHT0K6xqz+48nOtvxbReDN1zD7DnzR1YNsA==
+quasar-sdk-core@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/quasar-sdk-core/-/quasar-sdk-core-2.0.0.tgz#fa45e176d5e4b710331921762df10239f4db7c64"
+  integrity sha512-GKIjatiPijK0acVw8Q4Y9bT1Nzpe1DgREks2PXRvdObj+cmVlFXP4UmHblZjJ7XAhJnP3BBWCWNr8C4zVVSkdQ==
   dependencies:
     big.js "^5.2.2"
     decimal.js-light "^2.5.0"
@@ -6215,15 +6215,15 @@ vary@^1, vary@~1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vefi-multi-sig@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/vefi-multi-sig/-/vefi-multi-sig-1.0.0.tgz#6f526fe2fbc37815561d8c8c0efd6051df3310d9"
-  integrity sha512-UpZpUtTZSsX9W1ujsZgwp07JpsKSzIxHV4A2S/BujM+8ndh0D7Xu49wAsNhVueM5mtTIx7d/FFkUPmhnrjzKzw==
+vefi-multi-sig@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/vefi-multi-sig/-/vefi-multi-sig-2.0.0.tgz#775255b76373e021d4f7076fb65eae00bcc7e834"
+  integrity sha512-mzLUWpoBlliRjJLygfpkrCv+kCLEw6MmbqJo+R76TnHyKxrFO1EiJQtN/8K0WN7xCxrzhTwb+SfpuTt3w2fzTw==
 
-vefi-token-launchpad-staking@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/vefi-token-launchpad-staking/-/vefi-token-launchpad-staking-1.0.2.tgz#f71164a1d91edab8a1dc9781662b7fe708ec0eb2"
-  integrity sha512-7nIwm/GZ8+Mq1KYdfISuANocaZ+RN4/t6qDVq/ncLQwenfhsC5NcTg1JButknMCyaUqv2bHQQq1YvCW5xrJlQw==
+vefi-token-launchpad-staking@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/vefi-token-launchpad-staking/-/vefi-token-launchpad-staking-2.0.0.tgz#1d66ab4307ccac7b3aaecc9e9bee52d2194f9457"
+  integrity sha512-R97XcI++xj2wMAmSEtC5slyhL4JGP8Bz7yA0jayBJmHbXJ0biHfrE1OXs945NvMMqIpFvwblIpMX5AMHgC5AfA==
 
 verror@1.10.0:
   version "1.10.0"

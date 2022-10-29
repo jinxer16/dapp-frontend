@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Head from 'next/head';
 import ToggleButton from '../components/Button/ToggleButton';
 import { Liquidity, Stats, Swap } from '../routes/dex';
 
@@ -12,6 +13,9 @@ export default function Dex() {
   const [route, setRoute] = useState<Route>(Route.SWAP);
   return (
     <>
+      <Head>
+        <title>Vefi DApps | DEX</title>
+      </Head>
       <div className="flex justify-center items-center my-16">
         <div className="flex justify-center items-center my-[3px] rounded-[18px] bg-white py-[2px] px-[4px]">
           <ToggleButton isActive={route === Route.SWAP} onClick={() => setRoute(Route.SWAP)}>
