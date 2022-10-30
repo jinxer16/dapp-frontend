@@ -6,6 +6,7 @@ import { WalletConnectConnector } from '@web3-react/walletconnect-connector';
 import { TorusConnector } from '@web3-react/torus-connector';
 import { formatEther } from '@ethersproject/units';
 import type Web3 from 'web3';
+import chains from '../assets/chains.json';
 
 type Web3ContextType = {
   account?: string | null;
@@ -29,7 +30,14 @@ const injectedConnector = new InjectedConnector({
 const walletConnectConnector = new WalletConnectConnector({
   qrcode: true,
   bridge: 'https://bridge.walletconnect.org',
-  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311]
+  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311],
+  rpc: {
+    56: chains[56].rpcUrl,
+    32520: chains[32520].rpcUrl,
+    86: chains[86].rpcUrl,
+    311: chains[311].rpcUrl,
+    97: chains[97].rpcUrl
+  }
 });
 
 const torusConnector = new TorusConnector({
