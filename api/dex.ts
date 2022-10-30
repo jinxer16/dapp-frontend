@@ -21,7 +21,7 @@ export const fetchPriceHistoryForPair = (pair: string, chainId: number, period?:
 };
 
 export const fetchLiquidityPoolsForUser = (chainId: number, account: string) => {
-  return new Promise<Array<string>>((resolve, reject) => {
+  return new Promise<{ totalItems: number; items: Array<string> }>((resolve, reject) => {
     rootDAppClient
       .get(`/dex/pools/${hexValue(chainId)}/${account}`)
       .then((res) => resolve(res.data.result))

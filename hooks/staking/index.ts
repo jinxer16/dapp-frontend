@@ -4,7 +4,7 @@ import { hexStripZeros } from '@ethersproject/bytes';
 import { Contract } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import _ from 'lodash';
-import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/StakingPool.sol/StakingPool.json';
+import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/interfaces/IStakingPool.sol/IStakingPool.json';
 import { abi as erc20Abi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { StakingPoolModel } from '../../api/models/staking';
 import chains from '../../assets/chains.json';

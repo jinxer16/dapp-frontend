@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "export NODE_ENV=production && next build",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write **/**.{css,js,json,ts,tsx}"
@@ -36,8 +36,9 @@
     "millify": "^5.0.1",
     "moment": "^2.29.4",
     "next": "12.1.6",
+    "next-pwa": "^5.6.0",
     "postcss": "^8.4.16",
-    "quasar-sdk-core": "^1.0.2",
+    "quasar-sdk-core": "^2.0.0",
     "quasar-v1-core": "^1.0.1",
     "quasar-v1-periphery": "^1.0.0",
     "react": "18.1.0",
@@ -50,8 +51,8 @@
     "tailwindcss": "^3.1.8",
     "url-loader": "^4.1.1",
     "use-sound": "^4.0.1",
-    "vefi-multi-sig": "^1.0.0",
-    "vefi-token-launchpad-staking": "^1.0.2",
+    "vefi-multi-sig": "^2.0.0",
+    "vefi-token-launchpad-staking": "^2.0.0",
     "web3": "^1.8.0"
   },
   "devDependencies": {

@@ -134,7 +134,7 @@ export default function Stats() {
             <span>
               Page {page} of {Math.ceil(events.totalItems / 20)}
             </span>
-            <button onClick={() => setPage((p) => p + 1)} disabled={page === Math.ceil(events.totalItems / 20)} className="bg-transparent">
+            <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(events.totalItems / 20)} className="bg-transparent">
               <FiArrowRight />
             </button>
           </div>

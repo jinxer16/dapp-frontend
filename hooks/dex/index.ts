@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { hexStripZeros } from '@ethersproject/bytes';
 import { AddressZero } from '@ethersproject/constants';
-import { formatEther } from '@ethersproject/units';
+import { formatEther, parseUnits } from '@ethersproject/units';
 import { ChainId, Fetcher, Pair, TokenAmount, WETH } from 'quasar-sdk-core';
 import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { abi as pairAbi } from 'quasar-v1-core/artifacts/contracts/QuasarPair.sol/QuasarPair.json';
@@ -121,22 +121,27 @@ export const fetchTokenBalanceForConnectedWallet = (token: string, deps: Array<a
   useEffect(() => {
     if (active && !!account && !!chainId && token && token) {
       (async () => {
-        const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
-        if (token !== AddressZero) {
-          const t = await Fetcher.fetchTokenData(chainId, token, url);
-          const erc20Interface = new Interface(erc20Abi);
-          const balanceOf = erc20Interface.encodeFunctionData('balanceOf(address)', [account]);
-          const call = await rpcCall(url, { method: 'eth_call', params: [{ to: t.address, data: balanceOf }, 'latest'] });
-          const bal = _.divide(parseInt(call, 16), 10 ** t.decimals);
-          setBalance(bal.toPrecision(4));
-        } else {
-          const call = await rpcCall(url, { method: 'eth_getBalance', params: [account, 'latest'] });
-          setBalance(parseFloat(formatEther(call)).toPrecision(4));
+        try {
+          const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+          if (token !== AddressZero) {
+            const t = await Fetcher.fetchTokenData(chainId, token, url);
+            const erc20Interface = new Interface(erc20Abi);
+            const balanceOf = erc20Interface.encodeFunctionData('balanceOf(address)', [account]);
+            const call = await rpcCall(url, { method: 'eth_call', params: [{ to: t.address, data: balanceOf }, 'latest'] });
+            const bal = _.divide(parseInt(call, 16), 10 ** t.decimals);
+            setBalance(bal.toPrecision(4));
+          } else {
+            const call = await rpcCall(url, { method: 'eth_getBalance', params: [account, 'latest'] });
+            setBalance(parseFloat(formatEther(call)).toPrecision(4));
+          }
+        } catch (error: any) {
+          console.log(error);
         }
       })();
     } else {
       setBalance('0');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, account, chainId, token, ...deps]);
   return balance;
 };
@@ -364,69 +369,119 @@ export const fetchPairVolumeInUSDWithGivenPeriod = (pair: string, chainId: numbe
 
   useEffect(() => {
     (async () => {
-      const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
-      const pairAbiInterface = new Interface(pairAbi);
-      const factoryAbiInterface = new Interface(factoryAbi);
-      const swapsWithinPeriod = await fetchSwapEventsForPairPerPeriod(pair, chainId, period);
-      const whitelistedPeggedTokens = whitelist[chainId as unknown as keyof typeof whitelist];
-      const factory = factories[chainId as unknown as keyof typeof factories];
+      try {
+        const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+        const pairAbiInterface = new Interface(pairAbi);
+        const factoryAbiInterface = new Interface(factoryAbi);
+        const swapsWithinPeriod = await fetchSwapEventsForPairPerPeriod(pair, chainId, period);
+        const whitelistedPeggedTokens = whitelist[chainId as unknown as keyof typeof whitelist];
+        const factory = factories[chainId as unknown as keyof typeof factories];
 
-      const token0Hash = pairAbiInterface.getSighash('token0()');
-      const token1Hash = pairAbiInterface.getSighash('token1()');
-      let token0Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token0Hash }, 'latest'] });
-      let token1Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token1Hash }, 'latest'] });
-      token0Call = hexStripZeros(token0Call);
-      token1Call = hexStripZeros(token1Call);
+        const token0Hash = pairAbiInterface.getSighash('token0()');
+        const token1Hash = pairAbiInterface.getSighash('token1()');
+        let token0Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token0Hash }, 'latest'] });
+        let token1Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token1Hash }, 'latest'] });
+        token0Call = hexStripZeros(token0Call);
+        token1Call = hexStripZeros(token1Call);
 
-      let priceOfToken0InUSD = 0;
-      let priceOfToken1InUSD = 0;
+        let priceOfToken0InUSD = 0;
+        let priceOfToken1InUSD = 0;
 
-      if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token0Call.toLowerCase())) {
-        priceOfToken0InUSD = 1;
-      } else {
-        for (const token of whitelistedPeggedTokens) {
-          const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token0Call]);
-          const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
+        if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token0Call.toLowerCase())) {
+          priceOfToken0InUSD = 1;
+        } else {
+          for (const token of whitelistedPeggedTokens) {
+            const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token0Call]);
+            const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
 
-          if (pairCall !== AddressZero) {
-            const token0 = await Fetcher.fetchTokenData(chainId, token, url);
-            const token1 = await Fetcher.fetchTokenData(chainId, token0Call, url);
-            const pairObj = await Fetcher.fetchPairData(token0, token1, url);
-            priceOfToken0InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+            if (pairCall !== AddressZero) {
+              const token0 = await Fetcher.fetchTokenData(chainId, token, url);
+              const token1 = await Fetcher.fetchTokenData(chainId, token0Call, url);
+              const pairObj = await Fetcher.fetchPairData(token0, token1, url);
+              priceOfToken0InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+            }
           }
         }
-      }
 
-      if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token1Call.toLowerCase())) {
-        priceOfToken1InUSD = 1;
-      } else {
-        for (const token of whitelistedPeggedTokens) {
-          const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token1Call]);
-          const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
+        if (_.map(whitelistedPeggedTokens, (token) => token.toLowerCase()).includes(token1Call.toLowerCase())) {
+          priceOfToken1InUSD = 1;
+        } else {
+          for (const token of whitelistedPeggedTokens) {
+            const getPairHash = factoryAbiInterface.encodeFunctionData('getPair(address,address)', [token, token1Call]);
+            const pairCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: getPairHash }, 'latest'] });
 
-          if (pairCall !== AddressZero) {
-            const token0 = await Fetcher.fetchTokenData(chainId, token, url);
-            const token1 = await Fetcher.fetchTokenData(chainId, token1Call, url);
-            const pairObj = await Fetcher.fetchPairData(token0, token1, url);
-            priceOfToken1InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+            if (pairCall !== AddressZero) {
+              const token0 = await Fetcher.fetchTokenData(chainId, token, url);
+              const token1 = await Fetcher.fetchTokenData(chainId, token1Call, url);
+              const pairObj = await Fetcher.fetchPairData(token0, token1, url);
+              priceOfToken1InUSD = parseFloat(pairObj.priceOf(token1).toSignificant(4));
+            }
           }
         }
-      }
-      const token0Data = await Fetcher.fetchTokenData(chainId, token0Call, url);
-      const token1Data = await Fetcher.fetchTokenData(chainId, token1Call, url);
-      const volumeInUSD = _.map(
-        swapsWithinPeriod,
-        (swap) =>
-          (_.divide(parseInt(swap.amount0In), Math.pow(10, token0Data.decimals)) +
-            _.divide(parseInt(swap.amount0Out), Math.pow(10, token0Data.decimals))) *
-            priceOfToken0InUSD +
-          (_.divide(parseInt(swap.amount1In), Math.pow(10, token1Data.decimals)) +
-            _.divide(parseInt(swap.amount1Out), Math.pow(10, token1Data.decimals))) *
-            priceOfToken1InUSD
-      ).reduce((prev, curr) => _.add(prev, curr), 0);
+        const token0Data = await Fetcher.fetchTokenData(chainId, token0Call, url);
+        const token1Data = await Fetcher.fetchTokenData(chainId, token1Call, url);
+        const volumeInUSD = _.map(
+          swapsWithinPeriod,
+          (swap) =>
+            (_.divide(parseInt(swap.amount0In), Math.pow(10, token0Data.decimals)) +
+              _.divide(parseInt(swap.amount0Out), Math.pow(10, token0Data.decimals))) *
+              priceOfToken0InUSD +
+            (_.divide(parseInt(swap.amount1In), Math.pow(10, token1Data.decimals)) +
+              _.divide(parseInt(swap.amount1Out), Math.pow(10, token1Data.decimals))) *
+              priceOfToken1InUSD
+        ).reduce((prev, curr) => _.add(prev, curr), 0);
 
-      setUSDVolume(volumeInUSD);
+        setUSDVolume(volumeInUSD);
+      } catch (error: any) {
+        console.log(error);
+      }
     })();
   }, [pair, chainId, period]);
   return usdVolume;
+};
+
+export const fetchLiquidityValue = (pair: string, chainId: number, tokenAddress: string, liquidity: number) => {
+  const [liquidityValue, setLiquidityValue] = useState<number>(0);
+
+  useEffect(() => {
+    if (!!pair && !!tokenAddress) {
+      (async () => {
+        try {
+          const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+          const token = await Fetcher.fetchTokenData(chainId, tokenAddress, url);
+          // const pairAsToken = await Fetcher.fetchTokenData(chainId, pair, url);
+          const factory = factories[chainId as unknown as keyof typeof factories];
+          const erc20AbiInterface = new Interface(erc20Abi);
+          const pairAbiInterface = new Interface(pairAbi);
+          const factoryAbiInterface = new Interface(factoryAbi);
+          const totalSupplyHash = erc20AbiInterface.getSighash('totalSupply()');
+          const kLastHash = pairAbiInterface.getSighash('kLast()');
+          const feeToHash = factoryAbiInterface.getSighash('feeTo()');
+          const token0Hash = pairAbiInterface.getSighash('token0()');
+          const token1Hash = pairAbiInterface.getSighash('token1()');
+          const totalSupplyCall = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: totalSupplyHash }, 'latest'] });
+          const kLastCall = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: kLastHash }, 'latest'] });
+          const feeToCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: feeToHash }, 'latest'] });
+          const token0Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token0Hash }, 'latest'] });
+          const token1Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token1Hash }, 'latest'] });
+
+          const token0 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token0Call), url);
+          const token1 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token1Call), url);
+          const pairAsToken = await Fetcher.fetchPairData(token0, token1, url);
+          const totalSupplyAmount = new TokenAmount(pairAsToken.liquidityToken, totalSupplyCall);
+          const liquidityAmount = new TokenAmount(pairAsToken.liquidityToken, parseUnits(liquidity.toFixed(4), 18).toHexString());
+
+          setLiquidityValue(
+            parseFloat(
+              pairAsToken.getLiquidityValue(token, totalSupplyAmount, liquidityAmount, feeToCall !== AddressZero, kLastCall).toSignificant(4)
+            )
+          );
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [pair, chainId, tokenAddress, liquidity]);
+
+  return liquidityValue;
 };

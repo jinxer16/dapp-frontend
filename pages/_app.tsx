@@ -23,8 +23,8 @@ const AppContent = ({ children }: any) => {
       <div className="overflow-auto flex-1 backdrop-opacity-10 backdrop-invert bg-[#000]/70">
         {!active ? (
           <div className="flex justify-center items-center w-full my-[100px]">
-            <div className="flex flex-col justify-center items-center gap-6">
-              <span className="text-white font-[700] text-[18px] md:text-[50px] font-Montserrat">Connect your wallet</span>
+            <div className="flex flex-col-reverse justify-center items-center gap-6">
+              <span className="text-white font-[700] text-[18px] md:text-[50px] font-Montserrat">Connect your wallet!</span>
               <Image src="/images/connect_wallet.svg" width={398.34} height={378} alt="connect_wallet" />
             </div>
           </div>

@@ -11,12 +11,30 @@ import { fetchAllMultiSigWalletsOfAccount } from '../../api/multisig';
 
 type APIContextType = {
   tokensListing: Array<ListingModel>;
-  stakingPools: Array<string>;
-  accountStakingPools: Array<string>;
+  stakingPools: {
+    items: Array<string>;
+    totalItems: number;
+  };
+  accountStakingPools: {
+    totalItems: number;
+    items: Array<string>;
+  };
   tokensListingAsDictionary: { [key: string]: ListingModel };
-  liquidityPoolsForUser: Array<string>;
-  stakesByAccount: Array<StakeEventModel>;
-  multiSigsByAccount: Array<string>;
+  liquidityPoolsForUser: {
+    totalItems: number;
+    items: Array<string>;
+  };
+  importedPools: { [chainId: number]: Array<string> };
+  stakesByAccount: {
+    totalItems: number;
+    items: Array<StakeEventModel>;
+  };
+  multiSigsByAccount: {
+    totalItems: number;
+    items: Array<string>;
+  };
+  importedMultiSigs: { [chainId: number]: Array<string> };
+  importMultiSigs: (addresses: Array<string>) => void;
   topPairs: Array<string>;
   importToken: (model: ListingModel) => void;
   importPool: (pool: string) => void;
@@ -37,18 +55,41 @@ const APIContext = createContext({} as APIContextType);
 export const APIContextProvider = ({ children }: any) => {
   const { chainId, active, account } = useWeb3Context();
   const [tokensListing, setTokensListing] = useState<Array<ListingModel>>([]);
-  const [stakingPools, setStakingPools] = useState<Array<string>>([]);
-  const [accountStakingPools, setAccountStakingPools] = useState<Array<string>>([]);
+  const [stakingPools, setStakingPools] = useState<{
+    totalItems: number;
+    items: Array<string>;
+  }>({ totalItems: 0, items: [] });
+  const [accountStakingPools, setAccountStakingPools] = useState<{
+    totalItems: number;
+    items: Array<string>;
+  }>({
+    totalItems: 0,
+    items: []
+  });
   const [tokensListingAsDictionary, setTokensListingAsDictionary] = useState<{ [key: string]: ListingModel }>({});
-  const [stakesByAccount, setStakesByAccount] = useState<Array<StakeEventModel>>([]);
-  const [liquidityPoolsForUser, setLiquidityPoolsForUser] = useState<Array<string>>([]);
-  const [multiSigsByAccount, setMultiSigsByAccount] = useState<Array<string>>([]);
+  const [stakesByAccount, setStakesByAccount] = useState<{
+    totalItems: number;
+    items: Array<StakeEventModel>;
+  }>({
+    totalItems: 0,
+    items: []
+  });
+  const [liquidityPoolsForUser, setLiquidityPoolsForUser] = useState<{
+    totalItems: number;
+    items: Array<string>;
+  }>({ totalItems: 0, items: [] });
+  const [multiSigsByAccount, setMultiSigsByAccount] = useState<{
+    totalItems: number;
+    items: Array<string>;
+  }>({ totalItems: 0, items: [] });
   const [topPairs, setTopPairs] = useState<Array<string>>([]);
   const [events, setEvents] = useState<{
     type: 'all' | 'swap' | 'burn' | 'mint';
     totalItems: number;
     items: Array<EventModel>;
   }>({ type: 'all', totalItems: 0, items: [] });
+  const [importedPools, setImportedPools] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
+  const [importedMultiSigs, setImportedMultiSigs] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
 
   const importToken = useCallback((model: ListingModel) => {
     if (!_.includes(tokensListing, model)) setTokensListing((models) => [...models, model]);
@@ -67,9 +108,26 @@ export const APIContextProvider = ({ children }: any) => {
     [chainId]
   );
 
-  const importPool = useCallback((pool: string) => {
-    if (!_.includes(liquidityPoolsForUser, pool)) setLiquidityPoolsForUser((pools) => [...pools, pool]);
-  }, []);
+  const importPool = useCallback(
+    (pool: string) => {
+      if (!!chainId) {
+        if (!_.includes(liquidityPoolsForUser.items, pool) && !_.includes(importedPools[chainId as number], pool))
+          setImportedPools((pools) => ({ ...pools, [chainId as number]: [...(pools[chainId as number] || []), pool] }));
+      }
+    },
+    [chainId]
+  );
+
+  const importMultiSigs = useCallback(
+    (addresses: Array<string>) => {
+      if (!!chainId) {
+        if (!_.every(addresses, (addr) => _.includes(importedMultiSigs[chainId as number], addr))) {
+          setImportedMultiSigs((multisigs) => ({ ...multisigs, [chainId as number]: addresses }));
+        }
+      }
+    },
+    [chainId]
+  );
 
   const fetchPools = useCallback(
     (page: number = 1) => {
@@ -108,15 +166,28 @@ export const APIContextProvider = ({ children }: any) => {
   );
 
   useEffect(() => {
-    (async () => {
-      const listing = await fetchListing(chainId || 97);
-      const pairs = await fetchTopPairs(chainId || 97);
+    const iPools = localStorage.getItem('vefi-dapps-dex-imported-pools');
+    const iMultisigs = localStorage.getItem('vefi-dapps-multisig-imported-wallets');
 
-      setTokensListing(listing);
-      setTopPairs(pairs);
-      eventsDataUpdate(1, 'all');
-      fetchPools(1);
-      if (!!account) {
+    if (typeof iPools === 'string' || !!iPools) {
+      setImportedPools(JSON.parse(iPools));
+    }
+
+    if (typeof iMultisigs === 'string' || !!iMultisigs) {
+      setImportedMultiSigs(JSON.parse(iMultisigs));
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (!!account && !!chainId) {
+        const listing = await fetchListing(chainId || 97);
+        const pairs = await fetchTopPairs(chainId || 97);
+
+        setTokensListing(listing);
+        setTopPairs(pairs);
+        eventsDataUpdate(1, 'all');
+        fetchPools(1);
         fetchAccountPools(1);
         fetchStakesByAccount(1);
         fetchMultiSigsByAccount(1);
@@ -129,6 +200,22 @@ export const APIContextProvider = ({ children }: any) => {
       setTokensListingAsDictionary(convertListingToDictionary(tokensListing));
     }
   }, [tokensListing]);
+
+  useEffect(() => {
+    if (importedPools) {
+      localStorage.setItem('vefi-dapps-dex-imported-pools', JSON.stringify(importedPools));
+    }
+  }, [importedPools]);
+
+  useEffect(() => {
+    if (importedMultiSigs) {
+      localStorage.setItem('vefi-dapps-multisig-imported-wallets', JSON.stringify(importedMultiSigs));
+    }
+  }, [importedMultiSigs]);
+
+  useEffect(() => {
+    if (!!chainId) setImportedPools([]);
+  }, [chainId]);
 
   useEffect(() => {
     if (active && !!account) {
@@ -146,6 +233,7 @@ export const APIContextProvider = ({ children }: any) => {
         liquidityPoolsForUser,
         importToken,
         importPool,
+        importedPools,
         topPairs,
         eventsDataUpdate,
         events,
@@ -156,7 +244,9 @@ export const APIContextProvider = ({ children }: any) => {
         stakesByAccount,
         fetchStakesByAccount,
         multiSigsByAccount,
-        fetchMultiSigsByAccount
+        fetchMultiSigsByAccount,
+        importedMultiSigs,
+        importMultiSigs
       }}
     >
       {children}

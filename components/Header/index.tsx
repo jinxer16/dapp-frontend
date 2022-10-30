@@ -8,6 +8,7 @@ import { RiMenu4Fill } from 'react-icons/ri';
 import { FiX, FiChevronDown, FiLogOut, FiCheck } from 'react-icons/fi';
 import { BsCurrencyExchange } from 'react-icons/bs';
 import { SiLaunchpad } from 'react-icons/si';
+import { IoMdRefresh } from 'react-icons/io';
 import { formatEthAddress } from 'eth-address';
 import _ from 'lodash';
 import { hexValue } from '@ethersproject/bytes';
@@ -56,6 +57,7 @@ const ActiveLink = ({ children, activeClassName, ...props }: ActiveLinkProps) =>
 };
 
 export default function Header() {
+  const { reload } = useRouter();
   const [showMobileSidebar, setShowMobileSidebar] = useState<boolean>(false);
   const [showProviderModal, setShowProviderModal] = useState<boolean>(false);
   const { active, account, error: web3Error, disconnectWallet, chainId } = useWeb3Context();
@@ -72,8 +74,10 @@ export default function Header() {
       )}
       <div className="bg-gradient-to-r from-[#000000] to-[#161525] w-full font-Montserrat">
         <div className="flex flex-row justify-between px-[38px] py-[16px]">
-          <div className="flex justify-center">
-            <Image src="/images/vefi.svg" alt="vefi_logo" width={30} height={30} />
+          <div className="flex justify-center cursor-pointer">
+            <Link href="/">
+              <Image src="/images/vefi.svg" alt="vefi_logo" width={30} height={30} />
+            </Link>
           </div>
           <div className="md:flex flex-row justify-between hidden">
             <div className="px-[23px] cursor-pointer">
@@ -97,7 +101,7 @@ export default function Header() {
               </ActiveLink>
             </div>
           </div>
-          <div>
+          <div className="flex justify-center items-center gap-2">
             {!active ? (
               <button
                 onClick={() => setShowProviderModal(true)}
@@ -106,7 +110,7 @@ export default function Header() {
                 <FaWallet /> <span className="text-white text-[18px] ml-[2px]">Connect Wallet</span>
               </button>
             ) : (
-              <div className="flex justify-center items-center gap-2">
+              <div className="flex justify-center items-center gap-2 flex-1">
                 <div className="dropdown dropdown-hover">
                   <button
                     tabIndex={0}
@@ -161,6 +165,11 @@ export default function Header() {
             >
               {!showMobileSidebar ? <RiMenu4Fill /> : <FiX />}
             </button>
+            {active && (
+              <button onClick={reload} className="btn btn-ghost btn-square text-white text-[30px]">
+                <IoMdRefresh />
+              </button>
+            )}
           </div>
         </div>
       </div>
