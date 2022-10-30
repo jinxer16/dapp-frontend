@@ -1,5 +1,5 @@
-import { ListingModel } from '../../api/models/dex';
-import { fetchTokenBalanceForConnectedWallet } from '../../hooks/dex';
+import { ListingModel } from '../../../api/models/dex';
+import { fetchTokenBalanceForConnectedWallet } from '../../../hooks/dex';
 
 type TokensListItemProps = {
   onClick: () => void;

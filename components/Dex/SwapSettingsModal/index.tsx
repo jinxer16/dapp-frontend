@@ -2,7 +2,7 @@ import React, { Fragment } from 'react';
 import { FaQuestionCircle } from 'react-icons/fa';
 import { FiX } from 'react-icons/fi';
 import { Switch, Dialog, Transition } from '@headlessui/react';
-import { useDEXSettingsContext } from '../../contexts/dex/settings';
+import { useDEXSettingsContext } from '../../../contexts/dex/settings';
 
 type SwapSettingsModalProps = {
   isOpen: boolean;
@@ -17,10 +17,10 @@ export default function SwapSettingsModal({ isOpen = false, onClose }: SwapSetti
     changeSlippage,
     txDeadlineInMins,
     changeTXDeadline,
-    isExpertMode,
-    switchExpertMode,
-    isLightningMode,
-    switchLightningMode,
+    // isExpertMode,
+    // switchExpertMode,
+    // isLightningMode,
+    // switchLightningMode,
     playSounds,
     switchSoundsMode
   } = useDEXSettingsContext();
@@ -153,7 +153,7 @@ export default function SwapSettingsModal({ isOpen = false, onClose }: SwapSetti
                           />
                         </div>
                       </div>
-                      <div className="w-full flex items-center justify-between my-2">
+                      {/* <div className="w-full flex items-center justify-between my-2">
                         <div className="mr-1 flex items-center flex-[1] text-sm text-slate-300">
                           Lightning Mode (Beta)
                           <FaQuestionCircle className="ml-1 text-[10px]" />
@@ -192,11 +192,13 @@ export default function SwapSettingsModal({ isOpen = false, onClose }: SwapSetti
                             />
                           </Switch>
                         </div>
-                      </div>
+                      </div> */}
                       <div className="w-full flex items-center justify-between my-2">
                         <div className="mr-1 flex items-center flex-[1] text-sm text-slate-300">
-                          Play Sounds
-                          <FaQuestionCircle className="ml-1 text-[10px]" />
+                          <span className="font-[700]">Play Sounds</span>
+                          <div className="tooltip tooltip-bottom" data-tip="Sound FX for distinct transaction states.">
+                            <FaQuestionCircle className="ml-1 text-[10px]" />
+                          </div>
                         </div>
                         <div className="flex-[0.2]">
                           <Switch

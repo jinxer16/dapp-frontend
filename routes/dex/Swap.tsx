@@ -1,5 +1,6 @@
+import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FiSettings, FiChevronDown, FiMaximize2, FiMinimize2 } from 'react-icons/fi';
+import { FiSettings, FiChevronDown } from 'react-icons/fi';
 import { IoMdRefreshCircle } from 'react-icons/io';
 import { MdSwapVerticalCircle, MdOutlineSwapHoriz } from 'react-icons/md';
 import { Rings } from 'react-loader-spinner';
@@ -10,15 +11,15 @@ import { Web3Provider } from '@ethersproject/providers';
 import { parseUnits } from '@ethersproject/units';
 import _ from 'lodash';
 import assert from 'assert';
-import { WETH, Fetcher, Trade, TokenAmount, Router, Percent, ETHER, Token, CurrencyAmount } from 'quasar-sdk-core';
+import { WETH, Fetcher, Trade, TokenAmount, Router, Percent, ETHER, CurrencyAmount } from 'quasar-sdk-core';
 import JSBI from 'jsbi';
 import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { abi as routerAbi } from 'quasar-v1-periphery/artifacts/contracts/QuasarRouter.sol/QuasarRouter.json';
 import useSound from 'use-sound';
-import Chart from '../../components/Chart';
-import SwapSettingsModal from '../../components/SwapSettingsModal';
+import Chart from '../../components/Dex/Chart';
+import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
 import ChartToggleButton from '../../components/Button/ChartToggleButton';
-import TokensListModal from '../../components/TokensListModal';
+import TokensListModal from '../../components/Dex/TokensListModal';
 import { ListingModel } from '../../api/models/dex';
 import { useAPIContext } from '../../contexts/api';
 import { useWeb3Context } from '../../contexts/web3';
@@ -45,6 +46,7 @@ enum ChartPeriod {
 }
 
 export default function Swap() {
+  const { reload } = useRouter();
   const [val1, setVal1] = useState<number>(0.0);
   const [val2, setVal2] = useState<number>(0.0);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>(ChartPeriod.DAY);
@@ -335,7 +337,7 @@ export default function Swap() {
           <div className="flex flex-col justify-evenly items-center w-full h-full">
             <div className="flex justify-between w-full">
               <div>
-                <button className="bg-transparent text-white text-[23px]">
+                <button onClick={reload} className="bg-transparent text-white text-[23px] cursor-pointer">
                   <IoMdRefreshCircle />
                 </button>
               </div>

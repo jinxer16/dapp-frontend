@@ -25,7 +25,10 @@ type APIContextType = {
     items: Array<string>;
   };
   importedPools: { [chainId: number]: Array<string> };
-  stakesByAccount: Array<StakeEventModel>;
+  stakesByAccount: {
+    totalItems: number;
+    items: Array<StakeEventModel>;
+  };
   multiSigsByAccount: {
     totalItems: number;
     items: Array<string>;
@@ -64,7 +67,13 @@ export const APIContextProvider = ({ children }: any) => {
     items: []
   });
   const [tokensListingAsDictionary, setTokensListingAsDictionary] = useState<{ [key: string]: ListingModel }>({});
-  const [stakesByAccount, setStakesByAccount] = useState<Array<StakeEventModel>>([]);
+  const [stakesByAccount, setStakesByAccount] = useState<{
+    totalItems: number;
+    items: Array<StakeEventModel>;
+  }>({
+    totalItems: 0,
+    items: []
+  });
   const [liquidityPoolsForUser, setLiquidityPoolsForUser] = useState<{
     totalItems: number;
     items: Array<string>;
@@ -103,7 +112,7 @@ export const APIContextProvider = ({ children }: any) => {
     (pool: string) => {
       if (!!chainId) {
         if (!_.includes(liquidityPoolsForUser.items, pool) && !_.includes(importedPools[chainId as number], pool))
-          setImportedPools((pools) => ({ ...pools, [chainId as number]: [...pools[chainId as number], pool] }));
+          setImportedPools((pools) => ({ ...pools, [chainId as number]: [...(pools[chainId as number] || []), pool] }));
       }
     },
     [chainId]

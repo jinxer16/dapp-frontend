@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { hexStripZeros } from '@ethersproject/bytes';
 import { AddressZero } from '@ethersproject/constants';
-import { formatEther } from '@ethersproject/units';
+import { formatEther, parseUnits } from '@ethersproject/units';
 import { ChainId, Fetcher, Pair, TokenAmount, WETH } from 'quasar-sdk-core';
 import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { abi as pairAbi } from 'quasar-v1-core/artifacts/contracts/QuasarPair.sol/QuasarPair.json';
@@ -141,6 +141,7 @@ export const fetchTokenBalanceForConnectedWallet = (token: string, deps: Array<a
     } else {
       setBalance('0');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, account, chainId, token, ...deps]);
   return balance;
 };
@@ -437,4 +438,50 @@ export const fetchPairVolumeInUSDWithGivenPeriod = (pair: string, chainId: numbe
     })();
   }, [pair, chainId, period]);
   return usdVolume;
+};
+
+export const fetchLiquidityValue = (pair: string, chainId: number, tokenAddress: string, liquidity: number) => {
+  const [liquidityValue, setLiquidityValue] = useState<number>(0);
+
+  useEffect(() => {
+    if (!!pair && !!tokenAddress) {
+      (async () => {
+        try {
+          const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+          const token = await Fetcher.fetchTokenData(chainId, tokenAddress, url);
+          // const pairAsToken = await Fetcher.fetchTokenData(chainId, pair, url);
+          const factory = factories[chainId as unknown as keyof typeof factories];
+          const erc20AbiInterface = new Interface(erc20Abi);
+          const pairAbiInterface = new Interface(pairAbi);
+          const factoryAbiInterface = new Interface(factoryAbi);
+          const totalSupplyHash = erc20AbiInterface.getSighash('totalSupply()');
+          const kLastHash = pairAbiInterface.getSighash('kLast()');
+          const feeToHash = factoryAbiInterface.getSighash('feeTo()');
+          const token0Hash = pairAbiInterface.getSighash('token0()');
+          const token1Hash = pairAbiInterface.getSighash('token1()');
+          const totalSupplyCall = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: totalSupplyHash }, 'latest'] });
+          const kLastCall = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: kLastHash }, 'latest'] });
+          const feeToCall = await rpcCall(url, { method: 'eth_call', params: [{ to: factory, data: feeToHash }, 'latest'] });
+          const token0Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token0Hash }, 'latest'] });
+          const token1Call = await rpcCall(url, { method: 'eth_call', params: [{ to: pair, data: token1Hash }, 'latest'] });
+
+          const token0 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token0Call), url);
+          const token1 = await Fetcher.fetchTokenData(chainId, hexStripZeros(token1Call), url);
+          const pairAsToken = await Fetcher.fetchPairData(token0, token1, url);
+          const totalSupplyAmount = new TokenAmount(pairAsToken.liquidityToken, totalSupplyCall);
+          const liquidityAmount = new TokenAmount(pairAsToken.liquidityToken, parseUnits(liquidity.toFixed(4), 18).toHexString());
+
+          setLiquidityValue(
+            parseFloat(
+              pairAsToken.getLiquidityValue(token, totalSupplyAmount, liquidityAmount, feeToCall !== AddressZero, kLastCall).toSignificant(4)
+            )
+          );
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [pair, chainId, tokenAddress, liquidity]);
+
+  return liquidityValue;
 };

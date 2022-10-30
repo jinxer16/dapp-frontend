@@ -4,24 +4,36 @@ import { FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import StakingPoolCard from '../../components/Staking/StakingPoolCard';
 import { useAPIContext } from '../../contexts/api';
 import StakeEventsTableBodyItem from '../../components/Staking/StakeEventsTableBodyItem';
+import Empty from '../../components/Empty';
 
 export default function PersonalPoolsAndEarnings() {
-  const { accountStakingPools, stakesByAccount, fetchAccountPools } = useAPIContext();
+  const { accountStakingPools, stakesByAccount, fetchAccountPools, fetchStakesByAccount } = useAPIContext();
   const [page, setPage] = useState<number>(1);
+  const [stakesPage, setStakesPage] = useState<number>(1);
 
   useEffect(() => {
     fetchAccountPools(page);
   }, [fetchAccountPools, page]);
 
+  useEffect(() => {
+    fetchStakesByAccount(stakesPage);
+  }, [fetchStakesByAccount, stakesPage]);
+
   return (
     <div className="flex flex-col justify-center items-center gap-8">
       <div className="flex flex-col justify-center items-center w-full gap-2">
         <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-grow px-[4px]">
-          {_.map(accountStakingPools.items, (pool, index) => (
-            <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
-              <StakingPoolCard key={index} pool={pool} />
-            </div>
-          ))}
+          {accountStakingPools.totalItems === 0 ? (
+            <Empty />
+          ) : (
+            <>
+              {_.map(accountStakingPools.items, (pool, index) => (
+                <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
+                  <StakingPoolCard key={index} pool={pool} />
+                </div>
+              ))}
+            </>
+          )}
         </div>
         <div className="flex justify-center items-center gap-2 text-white/70">
           <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
@@ -50,10 +62,25 @@ export default function PersonalPoolsAndEarnings() {
               </div>
             </div>
             <div className="table-row-group">
-              {_.map(stakesByAccount, (ev, index) => (
+              {_.map(stakesByAccount.items, (ev, index) => (
                 <StakeEventsTableBodyItem key={index} data={ev} />
               ))}
             </div>
+          </div>
+          <div className="flex justify-center items-center gap-2 text-white/70">
+            <button onClick={() => setStakesPage((p) => p - 1)} disabled={stakesPage === 1} className="bg-transparent">
+              <FiArrowLeft />
+            </button>
+            <span>
+              Page {stakesPage} of {Math.ceil(stakesByAccount.totalItems / 20)}
+            </span>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={stakesPage >= Math.ceil(stakesByAccount.totalItems / 20)}
+              className="bg-transparent"
+            >
+              <FiArrowRight />
+            </button>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
 import assert from 'assert';
 import _ from 'lodash';
@@ -14,12 +15,12 @@ import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contract
 import { abi as routerAbi } from 'quasar-v1-periphery/artifacts/contracts/QuasarRouter.sol/QuasarRouter.json';
 import useSound from 'use-sound';
 import { useAPIContext } from '../../contexts/api';
-import UserLPItem from '../../components/PoolsListItem';
+import UserLPItem from '../../components/Dex/PoolsListItem';
 import { useWeb3Context } from '../../contexts/web3';
 import { ListingModel } from '../../api/models/dex';
 import { computePair, fetchTokenBalanceForConnectedWallet } from '../../hooks/dex';
-import SwapSettingsModal from '../../components/SwapSettingsModal';
-import TokensListModal from '../../components/TokensListModal';
+import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
+import TokensListModal from '../../components/Dex/TokensListModal';
 import { useDEXSettingsContext } from '../../contexts/dex/settings';
 import routers from '../../assets/routers.json';
 import { addToMetamask } from '../../utils';
@@ -36,6 +37,7 @@ const LPRoute = ({ routeChange }: any) => {
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState<boolean>(false);
   const { liquidityPoolsForUser, importedPools } = useAPIContext();
   const { chainId } = useWeb3Context();
+  const { reload } = useRouter();
   return (
     <div className="bg-[#000000]/50 border-[#ffeb82] border-[1px] rounded-[20px] px-[19px] flex justify-center items-center py-[19px] w-full md:w-1/3 md:max-h-[600px] font-Montserrat">
       <div className="flex flex-col justify-evenly items-center w-full">
@@ -48,7 +50,7 @@ const LPRoute = ({ routeChange }: any) => {
             <button onClick={() => setIsSettingsModalVisible(true)} className="bg-transparent text-white text-[23px]">
               <FiSettings />
             </button>
-            <button className="bg-transparent text-white text-[23px]">
+            <button onClick={reload} className="bg-transparent text-white text-[23px]">
               <IoMdRefreshCircle />
             </button>
           </div>
@@ -88,6 +90,7 @@ const LPRoute = ({ routeChange }: any) => {
 };
 
 const AddLiquidityRoute = ({ routeChange }: any) => {
+  const { reload } = useRouter();
   const [val1, setVal1] = useState<number>(0.0);
   const [val2, setVal2] = useState<number>(0.0);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState<boolean>(false);
@@ -248,7 +251,7 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
             <button onClick={() => setIsSettingsModalVisible(true)} className="bg-transparent text-white text-[23px]">
               <FiSettings />
             </button>
-            <button className="bg-transparent text-white text-[23px] ml-[4px]">
+            <button onClick={reload} className="bg-transparent text-white text-[23px] ml-[4px]">
               <IoMdRefreshCircle />
             </button>
           </div>

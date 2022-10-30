@@ -16,17 +16,18 @@ export default function CreateNewStakingPool() {
     token1: '',
     apy1: 0,
     apy2: 0,
-    tax: 0
+    tax: 0,
+    withdrawalIntervals: 30
   });
   const isValidData = useMemo(
-    () => isAddress(data.token0) && isAddress(data.token1) && data.apy1 > 0 && data.apy2 > 0 && data.tax >= 0,
-    [data.apy1, data.apy2, data.tax, data.token0, data.token1]
+    () => isAddress(data.token0) && isAddress(data.token1) && data.apy1 > 0 && data.apy2 > 0 && data.tax >= 0 && data.withdrawalIntervals >= 30,
+    [data.apy1, data.apy2, data.tax, data.token0, data.token1, data.withdrawalIntervals]
   );
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleInputChange = (ev: ChangeEvent<HTMLInputElement>) =>
-    setData((d) => ({ ...d, [ev.target.name]: ev.target.type === 'number' ? ev.target.valueAsNumber : ev.target.value }));
+    setData((d) => ({ ...d, [ev.target.name]: ev.target.type === 'number' ? ev.target.valueAsNumber || 0 : ev.target.value }));
 
   const submitForm = useCallback(
     async (ev: FormEvent<HTMLFormElement>) => {
@@ -36,7 +37,15 @@ export default function CreateNewStakingPool() {
         const provider = new Web3Provider(library?.givenProvider);
         const stakingPoolActionContract = new Contract(action, actionsAbi, provider.getSigner());
         const value = await stakingPoolActionContract.deploymentFee();
-        const deploymentTx = await stakingPoolActionContract.deployStakingPool(data.token0, data.token1, data.apy1, data.apy2, data.tax, { value });
+        const deploymentTx = await stakingPoolActionContract.deployStakingPool(
+          data.token0,
+          data.token1,
+          data.apy1,
+          data.apy2,
+          data.tax,
+          `0x${(data.withdrawalIntervals * 60 * 60 * 24).toString(16)}`,
+          { value }
+        );
         const deploymentResponse = await deploymentTx.wait();
         toast(
           <div className="flex justify-center gap-2 text-[16px] font-poppins items-center">
@@ -53,7 +62,7 @@ export default function CreateNewStakingPool() {
         setIsLoading(false);
       }
     },
-    [action, chain.explorer, data.apy1, data.apy2, data.tax, data.token0, data.token1, library?.givenProvider]
+    [action, chain.explorer, data.apy1, data.apy2, data.tax, data.token0, data.token1, data.withdrawalIntervals, library?.givenProvider]
   );
   return (
     <div className="flex justify-center items-center w-full px-4 py-4">
@@ -111,6 +120,30 @@ export default function CreateNewStakingPool() {
             <span className="text-info text-[12px]">
               Percentage of the second token that would be given as a reward annually when the first token is staked.
             </span>
+          </div>
+          <div className="flex flex-col w-full justify-start items-start gap-1">
+            <span className="text-white font-[500]">Tax</span>
+            <input
+              required
+              type="number"
+              className="outline-0 w-full bg-[#000]/70 py-4 px-4 rounded-[12px] text-white"
+              placeholder="Enter tax"
+              name="tax"
+              onChange={handleInputChange}
+            />
+            <span className="text-info text-[12px]">Percentage of tokens paid for stake tax</span>
+          </div>
+          <div className="flex flex-col w-full justify-start items-start gap-1">
+            <span className="text-white font-[500]">Withdrawal Intervals</span>
+            <input
+              required
+              type="number"
+              className="outline-0 w-full bg-[#000]/70 py-4 px-4 rounded-[12px] text-white"
+              placeholder="Enter the second token APY"
+              name="withdrawalIntervals"
+              onChange={handleInputChange}
+            />
+            <span className="text-info text-[12px]">Intervals (in days) for withdrawals. Minimum of 30 days</span>
           </div>
           <button
             disabled={!isValidData || isLoading}
