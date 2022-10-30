@@ -58,82 +58,86 @@ export default function TokensListModal({ onClose, isVisible, onTokenSelected, s
               leaveTo="opacity-0 scale-95"
             >
               <div className="container top-0 bottom-0 left-0 right-0 w-[400px] mx-auto bg-[#161525]/[.7] mix-blend-normal rounded-[25px] backdrop-blur-[64px] text-white">
-                <div className="bg-[#161525]/[.5] p-[30px]">
-                  <div className="flex flex-row">
-                    <div className="flex flex-row items-center justify-between w-full">
-                      <h2 className="text-2xl font-semibold">Select Token</h2>
-                      <button onClick={onClose} className="text-[#000] text-[30] p-[8px] flex justify-center rounded-[100%] bg-[#fff] font-[700]">
-                        <FiX />
-                      </button>
+                <div className="flex flex-col justify-center items-center w-full">
+                  <div className="bg-[#161525]/[.5] p-[30px] w-full">
+                    <div className="flex flex-row">
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <h2 className="text-2xl font-semibold">Select Token</h2>
+                        <button onClick={onClose} className="text-[#000] text-[30] p-[8px] flex justify-center rounded-[100%] bg-[#fff] font-[700]">
+                          <FiX />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-col justify-center items-center gap-2 w-full">
-                  <div className="flex justify-center items-center px-10 py-10 w-full">
-                    <div className="bg-[#000]/50 rounded-[20px] py-2 flex justify-center items-center gap-1 px-4 w-full">
-                      <input
-                        type="text"
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        className="bg-transparent outline-0 font-poppins max-w-[200px] md:w-[500px]"
-                        placeholder="Search token by address or name"
-                      />
-                      <FiSearch />
+                  <div className="flex flex-col justify-center items-center gap-2 w-full">
+                    <div className="flex justify-center items-center px-10 py-10 w-full">
+                      <div className="bg-[#000]/50 rounded-[20px] py-2 flex justify-center items-center gap-1 px-4 w-full">
+                        <input
+                          type="text"
+                          value={searchValue}
+                          onChange={(e) => setSearchValue(e.target.value)}
+                          className="bg-transparent outline-0 font-poppins max-w-[200px] md:w-[500px]"
+                          placeholder="Search token by address or name"
+                        />
+                        <FiSearch />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col justify-start items-start w-full">
-                    {searchValue.replace(/\s/g, '').length > 0 &&
-                    _.filter(
-                      tokensListing,
-                      (model) =>
-                        model.name.toLowerCase().startsWith(searchValue.toLowerCase()) ||
-                        model.address.toLowerCase().startsWith(searchValue.toLowerCase())
-                    ).length > 0 ? (
+                    <div className="flex flex-col justify-start items-start w-full overflow-auto max-h-[500px]">
+                      {searchValue.replace(/\s/g, '').length > 0 &&
                       _.filter(
                         tokensListing,
                         (model) =>
                           model.name.toLowerCase().startsWith(searchValue.toLowerCase()) ||
                           model.address.toLowerCase().startsWith(searchValue.toLowerCase())
-                      ).map((model, index) => (
-                        <TokensListItem
-                          key={index}
-                          model={model}
-                          disabled={_.includes(selectedTokens, model)}
-                          onClick={() => {
-                            onTokenSelected(model);
-                            onClose();
-                          }}
-                        />
-                      ))
-                    ) : searchValue.replace(/\s/g, '').length === 0 ? (
-                      _.map(tokensListing, (model, index) => (
-                        <TokensListItem
-                          key={index}
-                          model={model}
-                          disabled={_.includes(selectedTokens, model)}
-                          onClick={() => {
-                            onTokenSelected(model);
-                            onClose();
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <div className="flex justify-center items-center w-full flex-col gap-2 px-2 py-2">
-                        <div className="flex justify-center items-center w-full">
-                          <span className="text-[red]/50 font-[600] text-[20px]">Empty Search Result!</span>
+                      ).length > 0 ? (
+                        _.filter(
+                          tokensListing,
+                          (model) =>
+                            model.name.toLowerCase().startsWith(searchValue.toLowerCase()) ||
+                            model.address.toLowerCase().startsWith(searchValue.toLowerCase())
+                        ).map((model, index) => (
+                          <div key={index} className="w-full">
+                            <TokensListItem
+                              model={model}
+                              disabled={_.includes(selectedTokens, model)}
+                              onClick={() => {
+                                onTokenSelected(model);
+                                onClose();
+                              }}
+                            />
+                          </div>
+                        ))
+                      ) : searchValue.replace(/\s/g, '').length === 0 ? (
+                        _.map(tokensListing, (model, index) => (
+                          <div key={index} className="w-full">
+                            <TokensListItem
+                              model={model}
+                              disabled={_.includes(selectedTokens, model)}
+                              onClick={() => {
+                                onTokenSelected(model);
+                                onClose();
+                              }}
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex justify-center items-center w-full flex-col gap-2 px-2 py-2">
+                          <div className="flex justify-center items-center w-full">
+                            <span className="text-[red]/50 font-[600] text-[20px]">Empty Search Result!</span>
+                          </div>
+                          {isAddress(searchValue) && (
+                            <button
+                              onClick={addTokenUsingSearchValue}
+                              disabled={isLoading}
+                              className={`btn btn-primary font-Montserrat w-full rounded-[25px] ${isLoading ? 'loading' : ''}`}
+                            >
+                              Import Token
+                            </button>
+                          )}
                         </div>
-                        {isAddress(searchValue) && (
-                          <button
-                            onClick={addTokenUsingSearchValue}
-                            disabled={isLoading}
-                            className={`btn btn-primary font-Montserrat w-full rounded-[25px] ${isLoading ? 'loading' : ''}`}
-                          >
-                            Import Token
-                          </button>
-                        )}
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

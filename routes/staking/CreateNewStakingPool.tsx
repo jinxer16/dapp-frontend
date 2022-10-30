@@ -1,12 +1,15 @@
-import React, { ChangeEvent, FormEvent, useCallback, useMemo, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { isAddress } from '@ethersproject/address';
 import { Contract } from '@ethersproject/contracts';
+import { Interface } from '@ethersproject/abi';
 import { Web3Provider } from '@ethersproject/providers';
 import { ToastContainer, toast } from 'react-toastify';
 import { abi as actionsAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/StakingPoolActions.sol/StakingPoolActions.json';
 import stakingPoolActions from '../../assets/pool_actions.json';
 import chains from '../../assets/chains.json';
 import { useWeb3Context } from '../../contexts/web3';
+import rpcCall from '../../api/rpc';
+import { formatEther } from '@ethersproject/units';
 
 export default function CreateNewStakingPool() {
   const { chainId, library } = useWeb3Context();
@@ -25,6 +28,7 @@ export default function CreateNewStakingPool() {
   );
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [networkFee, setNetworkFee] = useState<string>('0');
 
   const handleInputChange = (ev: ChangeEvent<HTMLInputElement>) =>
     setData((d) => ({ ...d, [ev.target.name]: ev.target.type === 'number' ? ev.target.valueAsNumber || 0 : ev.target.value }));
@@ -64,6 +68,22 @@ export default function CreateNewStakingPool() {
     },
     [action, chain.explorer, data.apy1, data.apy2, data.tax, data.token0, data.token1, data.withdrawalIntervals, library?.givenProvider]
   );
+
+  useEffect(() => {
+    if (action) {
+      (async () => {
+        try {
+          const actionAbiInterface = new Interface(actionsAbi);
+          const deploymentFeeHash = actionAbiInterface.getSighash('deploymentFee()');
+          const feeCall = await rpcCall(chain.rpcUrl, { method: 'eth_call', params: [{ to: action, data: deploymentFeeHash }, 'latest'] });
+          setNetworkFee(parseFloat(formatEther(feeCall)).toFixed(4));
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [action, chain.rpcUrl]);
+
   return (
     <div className="flex justify-center items-center w-full px-4 py-4">
       <div className="card rounded-[20px] bg-[#000]/50 shadow-xl font-Montserrat overflow-auto hidden-scrollbar w-full md:w-2/6 backdrop-blur-[60px] py-4">
@@ -144,6 +164,12 @@ export default function CreateNewStakingPool() {
               onChange={handleInputChange}
             />
             <span className="text-info text-[12px]">Intervals (in days) for withdrawals. Minimum of 30 days</span>
+          </div>
+          <div className="flex justify-between items-center w-full">
+            <span className="font-Montserrat text-white text-[20px] font-[600]">Network Fee</span>
+            <span className="font-Montserrat text-white text-[20px] font-[400]">
+              {networkFee} {chain?.symbol}
+            </span>
           </div>
           <button
             disabled={!isValidData || isLoading}

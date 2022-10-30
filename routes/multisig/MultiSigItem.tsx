@@ -114,6 +114,32 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
     [chain.explorer, library?.givenProvider, wallet]
   );
 
+  const revokeConfirmation = useCallback(
+    async (index: number) => {
+      try {
+        setIsActionLoading(true);
+        const provider = new Web3Provider(library?.givenProvider);
+        const multisigContract = new Contract(wallet, multiSigAbi, provider.getSigner());
+        const revocationTx = await multisigContract.revokeConfirmation(`0x${index.toString(16)}`);
+        const revocationResponse = await revocationTx.wait();
+        toast(
+          <div className="flex justify-center gap-2 text-[16px] font-poppins items-center">
+            <span className="text-white">Confirmation revoked successfully!</span>
+            <a href={chain.explorer.concat(`/tx/${revocationResponse.transactionHash}`)} target="_blank" rel="noreferrer">
+              View on explorer
+            </a>
+          </div>,
+          { type: 'success' }
+        );
+        setIsActionLoading(false);
+      } catch (error: any) {
+        toast(error.message, { type: 'error' });
+        setIsActionLoading(false);
+      }
+    },
+    [chain.explorer, library?.givenProvider, wallet]
+  );
+
   useEffect(() => {
     (async () => {
       const abiInterface = new Interface(multiSigAbi);
@@ -196,7 +222,11 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
                       >
                         <FiCheck />
                       </button>
-                      <button disabled={isActionLoading || transaction[4]} className="btn btn-square btn-warning">
+                      <button
+                        onClick={() => revokeConfirmation(parseInt(transaction[1].toHexString()))}
+                        disabled={isActionLoading || transaction[4]}
+                        className="btn btn-square btn-warning"
+                      >
                         <FiX />
                       </button>
                       <button
