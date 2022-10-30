@@ -19,6 +19,7 @@ export default class CustomDocument extends Document {
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin={undefined} />
           <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Poppins&display=swap" rel="stylesheet" />
           <link rel="icon" href="/images/logo.ico" />
+          <link rel="manifest" href="/manifest.json" />
           <meta name="description" content="Vefi is building a future immersed in Web3 for the massive adoption of blockchain technology." />
         </Head>
         <body>

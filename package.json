@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "export NODE_ENV=production && next build",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write **/**.{css,js,json,ts,tsx}"
@@ -36,6 +36,7 @@
     "millify": "^5.0.1",
     "moment": "^2.29.4",
     "next": "12.1.6",
+    "next-pwa": "^5.6.0",
     "postcss": "^8.4.16",
     "quasar-sdk-core": "^2.0.0",
     "quasar-v1-core": "^1.0.1",
