@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { FaWallet, FaDiceSix, FaHandshake } from 'react-icons/fa';
 import { RiMenu4Fill } from 'react-icons/ri';
-import { FiX, FiChevronDown, FiLogOut, FiCheck } from 'react-icons/fi';
+import { FiX, FiChevronDown, FiLogOut, FiCheck, FiLink } from 'react-icons/fi';
 import { BsCurrencyExchange } from 'react-icons/bs';
 import { SiLaunchpad } from 'react-icons/si';
 import { IoMdRefresh } from 'react-icons/io';
@@ -98,6 +98,11 @@ export default function Header() {
             <div className="px-[23px] cursor-pointer">
               <ActiveLink activeClassName="border-b-[3px] border-b-[#46aefc]" href="/multisig">
                 <span className="text-white text-[21px] font-[600]">Multi-Signature</span>
+              </ActiveLink>
+            </div>
+            <div className="px-[23px] cursor-pointer">
+              <ActiveLink activeClassName="border-b-[3px] border-b-[#46aefc]" href="/bridge">
+                <span className="text-white text-[21px] font-[600]">Bridge</span>
               </ActiveLink>
             </div>
           </div>
@@ -200,6 +205,11 @@ export default function Header() {
           <div className="cursor-pointer">
             <ActiveLink activeClassName="text-[#0cedfc]" href="/multisig">
               <FaHandshake className="text-[#fff] text-[40px]" />
+            </ActiveLink>
+          </div>
+          <div className="cursor-pointer">
+            <ActiveLink activeClassName="text-[#0cedfc]" href="/bridge">
+              <FiLink className="text-[#fff] text-[40px]" />
             </ActiveLink>
           </div>
         </div>
