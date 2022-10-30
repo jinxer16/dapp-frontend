@@ -20,7 +20,7 @@ export default class CustomDocument extends Document {
           <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Poppins&display=swap" rel="stylesheet" />
           <link rel="icon" href="/images/logo.ico" />
           <link rel="manifest" href="/manifest.json" />
-          <meta name="description" content="Vefi is building a future immersed in Web3 for the massive adoption of blockchain technology." />
+          <meta name="description" content="The Vefi DApps is a product of the Vefi Ecosystem that houses commonly used decentralized platforms." />
         </Head>
         <body>
           <Main />
