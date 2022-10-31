@@ -5,6 +5,7 @@ import type { AppProps } from 'next/app';
 import Image from 'next/image';
 import { UnsupportedChainIdError, Web3ReactProvider } from '@web3-react/core';
 import Web3 from 'web3';
+import { GoogleAnalytics } from 'nextjs-google-analytics';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { DEXSettingsContextProvider } from '../contexts/dex/settings';
@@ -48,6 +49,7 @@ const AppContent = ({ children }: any) => {
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
+      <GoogleAnalytics gaMeasurementId={process.env.NEXT_PUBLIC_GA_KEY} trackPageViews />
       <Web3ReactProvider getLibrary={getLibrary}>
         <Web3ContextProvider>
           <DEXSettingsContextProvider>
