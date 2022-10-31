@@ -18,7 +18,7 @@ import { useAPIContext } from '../../contexts/api';
 import UserLPItem from '../../components/Dex/PoolsListItem';
 import { useWeb3Context } from '../../contexts/web3';
 import { ListingModel } from '../../api/models/dex';
-import { computePair, fetchTokenBalanceForConnectedWallet } from '../../hooks/dex';
+import { computePair, fetchTokenBalanceForConnectedWallet, getOutputAmount } from '../../hooks/dex';
 import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
 import TokensListModal from '../../components/Dex/TokensListModal';
 import { useDEXSettingsContext } from '../../contexts/dex/settings';
@@ -106,6 +106,9 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
 
   const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken.address, [isLoading]);
   const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken.address, [isLoading]);
+
+  const outputAmount1 = getOutputAmount(firstSelectedToken, secondSelectedToken, val1, chainId || 97);
+  const outputAmount2 = getOutputAmount(firstSelectedToken, secondSelectedToken, val2, chainId || 97);
 
   const [playSuccess] = useSound(successFx);
   const [playError] = useSound(errorFx);
@@ -237,6 +240,14 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
       setSecondSelectedToken(tokensListing[1]);
     }
   }, [tokensListing]);
+
+  useEffect(() => {
+    if (outputAmount1 > 0) setVal2(outputAmount1);
+  }, [outputAmount1]);
+
+  // useEffect(() => {
+  //   if (outputAmount2 > 0) setVal1(outputAmount2);
+  // }, [outputAmount2]);
 
   return (
     <div className="bg-[#000000]/50 border-[#ffeb82] border-[1px] rounded-[20px] px-[19px] flex justify-center items-center py-[19px] w-full md:w-1/3 md:max-h-[600px] font-Montserrat">
