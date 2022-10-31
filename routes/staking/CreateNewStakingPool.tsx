@@ -159,7 +159,7 @@ export default function CreateNewStakingPool() {
               required
               type="number"
               className="outline-0 w-full bg-[#000]/70 py-4 px-4 rounded-[12px] text-white"
-              placeholder="Enter the second token APY"
+              placeholder="Enter withdrawal intervals"
               name="withdrawalIntervals"
               onChange={handleInputChange}
             />
