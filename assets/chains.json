@@ -33,5 +33,12 @@
     "explorer": "https://gatescan.org",
     "logoURI": "/images/gatechain.webp",
     "symbol": "GT"
+  },
+  "888": {
+    "name": "Wanchain",
+    "rpcUrl": "https://gwan-ssl.wandevs.org:56891",
+    "explorer": "https://wanscan.org",
+    "logoURI": "/images/wanchain.webp",
+    "symbol": "WAN"
   }
 }
