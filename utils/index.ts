@@ -20,7 +20,7 @@ export async function switchChain(chainId: string, chains: any) {
         params: [{ chainId }]
       });
   } catch (error: any) {
-    if (error.code === 4902) {
+    if (error.code === 4902 || error.code === -32603) {
       const chain = chains[parseInt(chainId, 16)];
       await ethereum.request({
         method: 'wallet_addEthereumChain',
