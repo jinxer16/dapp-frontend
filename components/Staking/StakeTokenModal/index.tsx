@@ -1,3 +1,4 @@
+import { Interface } from '@ethersproject/abi';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import { Transition, Dialog } from '@headlessui/react';
@@ -11,6 +12,7 @@ import { FiX } from 'react-icons/fi';
 import { useWeb3Context } from '../../../contexts/web3';
 import { fetchTokenBalanceForConnectedWallet } from '../../../hooks/dex';
 import chains from '../../../assets/chains.json';
+import rpcCall from '../../../api/rpc';
 
 type IStakeTokenModalProps = {
   token: string;
@@ -26,6 +28,7 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
   const [selectedToken, setSelectedToken] = useState<Token>();
   const [stakingAmount, setStakingAmount] = useState<number>(0);
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
+  const [tax, setTax] = useState<number>(0);
 
   const initStake = useCallback(async () => {
     try {
@@ -67,6 +70,21 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
       })();
     }
   }, [token, chainId]);
+
+  useEffect(() => {
+    if (pool) {
+      (async () => {
+        try {
+          const poolAbiInterface = new Interface(stakingPoolAbi);
+          const taxHash = poolAbiInterface.getSighash('stakingPoolTax()');
+          const taxCall = await rpcCall(chain.rpcUrl, { method: 'eth_call', params: [{ to: pool, data: taxHash }, 'latest'] });
+          setTax(parseInt(taxCall));
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [chain.rpcUrl, pool]);
 
   return (
     <>
@@ -121,6 +139,10 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
                     >
                       Stake
                     </button>
+                    <div className="flex justify-between items-center w-full font-Montserrat">
+                      <span className="text-[20px] text-white font-[700]">Tax:</span>
+                      <span className="text-[20px] text-white font-[500]">{tax}%</span>
+                    </div>
                   </div>
                 </div>
               </Transition.Child>
