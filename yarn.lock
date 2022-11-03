@@ -6146,10 +6146,10 @@ qs@~6.5.2:
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.3.tgz#3aeeffc91967ef6e35c0e488ef46fb296ab76aad"
   integrity sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==
 
-quasar-sdk-core@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/quasar-sdk-core/-/quasar-sdk-core-2.0.1.tgz#f1c0badcf86a75be0ebdea5995d5b3ee78dfd74c"
-  integrity sha512-7ScZGQ1n9Sq+F43iN3bXIK8uMmivSoC9/u0tR1tfSHqUzP/LxtroRvGRPKrLUGRvj1tYn6th6wTnwqwyPRA3AA==
+quasar-sdk-core@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/quasar-sdk-core/-/quasar-sdk-core-2.0.2.tgz#46906422e478c853af6f231273c6fe8f6c5cb54f"
+  integrity sha512-Z7G96kzxWeAntKl37UJDoHYSd28VkOwTRmn+UYmWsL9GHMqFck4gYWXFkouNOm8Py30XDnUuZro1XC+TzbzC0Q==
   dependencies:
     big.js "^5.2.2"
     decimal.js-light "^2.5.0"
