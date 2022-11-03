@@ -40,5 +40,12 @@
     "explorer": "https://wanscan.org",
     "logoURI": "/images/wanchain.webp",
     "symbol": "WAN"
+  },
+  "66": {
+    "name": "OKX Chain Mainnet",
+    "rpcUrl": "https://exchainrpc.okex.org",
+    "explorer": "https://oklink.com/en/okc",
+    "logoURI": "/images/okx.webp",
+    "symbol": "OKX"
   }
 }

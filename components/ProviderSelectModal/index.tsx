@@ -9,7 +9,7 @@ type ProviderSelectModalProps = {
 };
 
 export default function ProviderSelectModal({ isOpen = false, onClose }: ProviderSelectModalProps) {
-  const { connectInjected, connectTorus, connectWalletConnect } = useWeb3Context();
+  const { connectInjected, connectTorus, connectWalletConnect, connectOkxWallet } = useWeb3Context();
   return (
     <>
       <Transition appear show={isOpen} as={Fragment}>
@@ -79,6 +79,18 @@ export default function ProviderSelectModal({ isOpen = false, onClose }: Provide
                         >
                           <img src="/images/torus.svg" className="w-[50px] h-[50px]" alt="torus" />
                           <span className="text-white font-poppins font-[500] text-[18px]">Torus</span>
+                        </button>
+                      </div>
+                      <div className="flex flex-col md:flex-row w-full justify-evenly gap-2">
+                        <button
+                          onClick={() => {
+                            connectOkxWallet();
+                            onClose();
+                          }}
+                          className="bg-[#1b1e24]/[0.2] border-[0.5px] border-[#fff8f8]/[0.35] rounded-[15px] w-full md:w-1/2 px-3 py-[26px] flex justify-between gap-2 items-center"
+                        >
+                          <img src="/images/okx.webp" className="w-[50px] h-[50px]" alt="okx_wallet" />
+                          <span className="text-white font-poppins font-[500] text-[18px]">OKX Wallet</span>
                         </button>
                       </div>
                     </div>

@@ -6,6 +6,7 @@ import { WalletConnectConnector } from '@web3-react/walletconnect-connector';
 import { TorusConnector } from '@web3-react/torus-connector';
 import { formatEther } from '@ethersproject/units';
 import type Web3 from 'web3';
+import { OkxWalletConnector } from '../web3/custom/OkxWalletConnector';
 import chains from '../assets/chains.json';
 
 type Web3ContextType = {
@@ -18,31 +19,37 @@ type Web3ContextType = {
   connectInjected: () => void;
   connectWalletConnect: () => void;
   connectTorus: () => void;
+  connectOkxWallet: () => void;
   disconnectWallet: () => void;
 };
 
 const Web3Context = createContext<Web3ContextType>({} as Web3ContextType);
 
 const injectedConnector = new InjectedConnector({
-  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311, 888]
+  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311, 888, 66]
+});
+
+const okxwalletConnector = new OkxWalletConnector({
+  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311, 888, 66]
 });
 
 const walletConnectConnector = new WalletConnectConnector({
   qrcode: true,
   bridge: 'https://bridge.walletconnect.org',
-  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311, 888],
+  supportedChainIds: [56, 137, 32520, 1024, 43114, 40, 86, 97, 311, 888, 66],
   rpc: {
     56: chains[56].rpcUrl,
     32520: chains[32520].rpcUrl,
     86: chains[86].rpcUrl,
     311: chains[311].rpcUrl,
     97: chains[97].rpcUrl,
-    888: chains[888].rpcUrl
+    888: chains[888].rpcUrl,
+    66: chains[66].rpcUrl
   }
 });
 
 const torusConnector = new TorusConnector({
-  chainId: 97
+  chainId: 56
 });
 
 export const Web3ContextProvider = ({ children }: any) => {
@@ -82,6 +89,14 @@ export const Web3ContextProvider = ({ children }: any) => {
       .catch(setError);
   }, []);
 
+  const connectOkxWallet = useCallback(() => {
+    activate(okxwalletConnector, setError, true)
+      .then(() => {
+        console.log('Okx Connected!');
+      })
+      .catch(setError);
+  }, []);
+
   const disconnectWallet = useCallback(() => {
     if (active) deactivate();
   }, [active]);
@@ -99,6 +114,18 @@ export const Web3ContextProvider = ({ children }: any) => {
   }, []);
 
   useEffect(() => {
+    okxwalletConnector.isAuthorized().then((isAuth) => {
+      if (isAuth) {
+        activate(okxwalletConnector, setError, true)
+          .then(() => {
+            console.log('Connected!');
+          })
+          .catch(setError);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (active && !!account) {
       fetchBalance();
     }
@@ -106,7 +133,19 @@ export const Web3ContextProvider = ({ children }: any) => {
 
   return (
     <Web3Context.Provider
-      value={{ library, balance, account, active, connectInjected, connectWalletConnect, connectTorus, error, disconnectWallet, chainId }}
+      value={{
+        library,
+        balance,
+        account,
+        active,
+        connectInjected,
+        connectWalletConnect,
+        connectTorus,
+        connectOkxWallet,
+        error,
+        disconnectWallet,
+        chainId
+      }}
     >
       {children}
     </Web3Context.Provider>
