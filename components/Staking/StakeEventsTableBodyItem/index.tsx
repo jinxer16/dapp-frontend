@@ -34,7 +34,7 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
         setIsLoading(true);
         const provider = new Web3Provider(library?.givenProvider);
         const stakingPoolContract = new Contract(poolInfo.id, stakingPoolAbi, provider.getSigner());
-        const withdrawalTx = await stakingPoolContract.withdrawRewards(hexStripZeros(data.stake));
+        const withdrawalTx = await stakingPoolContract.withdrawRewards(data.stake);
         const withdrawalResponse = await withdrawalTx.wait();
 
         toast(
@@ -61,7 +61,7 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
         setIsLoading(true);
         const provider = new Web3Provider(library?.givenProvider);
         const stakingPoolContract = new Contract(poolInfo.id, stakingPoolAbi, provider.getSigner());
-        const unstakeTx = await stakingPoolContract.unstakeAll(hexStripZeros(data.stake));
+        const unstakeTx = await stakingPoolContract.unstakeAll(data.stake);
         const unstakeResponse = await unstakeTx.wait();
 
         toast(
