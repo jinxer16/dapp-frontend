@@ -5,13 +5,17 @@ import { EventModel, ListingModel } from '../../api/models/dex';
 import { useWeb3Context } from '../web3';
 import { fetchEvents, fetchLiquidityPoolsForUser, fetchListing, fetchTopPairs } from '../../api/dex';
 import { convertListingToDictionary } from '../../api/models/utils';
-import { fetchAccountStakes, fetchAccountStakingPools, fetchStakingPools } from '../../api/staking';
+import { fetchAccountStakes, fetchAccountStakingPools, fetchStakingPools, fetchSpecialStakingPools } from '../../api/staking';
 import { StakeEventModel } from '../../api/models/staking';
 import { fetchAllMultiSigWalletsOfAccount } from '../../api/multisig';
 
 type APIContextType = {
   tokensListing: Array<ListingModel>;
   stakingPools: {
+    items: Array<string>;
+    totalItems: number;
+  };
+  specialStakingPools: {
     items: Array<string>;
     totalItems: number;
   };
@@ -48,6 +52,7 @@ type APIContextType = {
   fetchAccountPools: (page: number) => void;
   fetchStakesByAccount: (page: number) => void;
   fetchMultiSigsByAccount: (page: number) => void;
+  fetchSpecialPools: (page: number) => void;
 };
 
 const APIContext = createContext({} as APIContextType);
@@ -90,6 +95,10 @@ export const APIContextProvider = ({ children }: any) => {
   }>({ type: 'all', totalItems: 0, items: [] });
   const [importedPools, setImportedPools] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
   const [importedMultiSigs, setImportedMultiSigs] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
+  const [specialStakingPools, setSpecialStakingPools] = useState<{ totalItems: number; items: Array<string> }>({
+    totalItems: 0,
+    items: []
+  });
 
   const importToken = useCallback((model: ListingModel) => {
     if (!_.includes(tokensListing, model)) setTokensListing((models) => [...models, model]);
@@ -133,6 +142,15 @@ export const APIContextProvider = ({ children }: any) => {
     (page: number = 1) => {
       fetchStakingPools(chainId || 97, page)
         .then(setStakingPools)
+        .catch(console.log);
+    },
+    [chainId]
+  );
+
+  const fetchSpecialPools = useCallback(
+    (page: number) => {
+      fetchSpecialStakingPools(chainId || 97, page)
+        .then(setSpecialStakingPools)
         .catch(console.log);
     },
     [chainId]
@@ -246,7 +264,9 @@ export const APIContextProvider = ({ children }: any) => {
         multiSigsByAccount,
         fetchMultiSigsByAccount,
         importedMultiSigs,
-        importMultiSigs
+        importMultiSigs,
+        specialStakingPools,
+        fetchSpecialPools
       }}
     >
       {children}
