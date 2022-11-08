@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiExternalLink, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { isAddress } from '@ethersproject/address';
+import { AddressZero } from '@ethersproject/constants';
 import { formatEthAddress } from 'eth-address';
 import { FiX } from 'react-icons/fi';
 import { Fetcher, Token } from 'quasar-sdk-core';
@@ -8,6 +9,7 @@ import { useAPIContext } from '../../../contexts/api';
 import { useWeb3Context } from '../../../contexts/web3';
 import { fetchStakingPoolInfo } from '../../../hooks/staking';
 import chains from '../../../assets/chains.json';
+import usdb from '../../../assets/usdb.json';
 import StakeTokenModal from '../StakeTokenModal';
 import { addToMetamask } from '../../../utils';
 
@@ -21,6 +23,7 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
   const [showDetails, setShowDetails] = useState<boolean>(false);
   const poolDetails = fetchStakingPoolInfo(pool, chainId || 97);
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
+  const USDB = useMemo(() => usdb[chainId as unknown as keyof typeof usdb], [chainId]);
   const [showStakeModal, setShowStakeModal] = useState<boolean>(false);
   const [selectedToken, setSelectedToken] = useState<string>('');
   const [tokenA, setTokenA] = useState<Token>();
@@ -29,10 +32,12 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
   useEffect(() => {
     if (poolDetails.tokenA && poolDetails.tokenB) {
       (async () => {
-        const tA = await Fetcher.fetchTokenData(chainId || 97, poolDetails.tokenA);
-        const tB = await Fetcher.fetchTokenData(chainId || 97, poolDetails.tokenB);
+        if (poolDetails.tokenA !== AddressZero) {
+          const tA = await Fetcher.fetchTokenData(chainId || 97, poolDetails.tokenA);
+          setTokenA(tA);
+        }
 
-        setTokenA(tA);
+        const tB = await Fetcher.fetchTokenData(chainId || 97, poolDetails.tokenB);
         setTokenB(tB);
       })();
     }
@@ -74,8 +79,8 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
                 {poolDetails.tokenASymbol}-{poolDetails.tokenBSymbol}
               </span>
             </div>
-            <div className="bg-[#0cedfc]/[.27] px-[2px] py-[2px] rounded-[3px]">
-              <span className="text-[#0cedfc] font-[400] text-[12px]">Regular</span>
+            <div className={`${poolDetails.tokenA === AddressZero ? 'bg-[gold]/[.27]' : 'bg-[#0cedfc]/[.27]'} px-[2px] py-[2px] rounded-[3px]`}>
+              <span className="text-[#0cedfc] font-[400] text-[12px]">{poolDetails.tokenA === AddressZero ? 'Special' : 'Regular'}</span>
             </div>
           </div>
           <div className="flex justify-between items-center w-full">
@@ -130,13 +135,15 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
                   <span className="text-[#fff] font-[500] text-[15px]">{poolDetails.tokenBBalance}</span>
                 </div>
                 <div className="flex justify-between items-center gap-2 w-full">
-                  <button
-                    disabled={!tokenA}
-                    onClick={() => addToMetamask(tokenA?.address as string, tokenA?.symbol as string, tokenA?.decimals as number)}
-                    className="font-[500]"
-                  >
-                    <span className="text-[16px] text-[#0cedfc]">Add {poolDetails.tokenASymbol} to Metamask</span>
-                  </button>
+                  {poolDetails.tokenA !== AddressZero && (
+                    <button
+                      disabled={!tokenA}
+                      onClick={() => addToMetamask(tokenA?.address as string, tokenA?.symbol as string, tokenA?.decimals as number)}
+                      className="font-[500]"
+                    >
+                      <span className="text-[16px] text-[#0cedfc]">Add {poolDetails.tokenASymbol} to Metamask</span>
+                    </button>
+                  )}
                 </div>
                 <div className="flex justify-between items-center gap-2 w-full">
                   <button
@@ -184,28 +191,30 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
                 <span>{poolDetails.tokenASymbol}</span>
               </label>
 
-              <label
-                className="flex flex-col justify-center items-center gap-1 cursor-pointer"
-                htmlFor={`${pool}-modal`}
-                onClick={() => {
-                  setSelectedToken(poolDetails.tokenB);
-                  setShowStakeModal(true);
-                }}
-              >
-                <div className="avatar">
-                  <div className="w-12">
-                    <img
-                      src={
-                        tokensListingAsDictionary[poolDetails.tokenB]
-                          ? tokensListingAsDictionary[poolDetails.tokenB].logoURI
-                          : '/images/placeholder_image.svg'
-                      }
-                      alt={poolDetails.tokenBSymbol}
-                    />
+              {poolDetails.tokenB.toLowerCase() !== USDB.toLowerCase() && (
+                <label
+                  className="flex flex-col justify-center items-center gap-1 cursor-pointer"
+                  htmlFor={`${pool}-modal`}
+                  onClick={() => {
+                    setSelectedToken(poolDetails.tokenB);
+                    setShowStakeModal(true);
+                  }}
+                >
+                  <div className="avatar">
+                    <div className="w-12">
+                      <img
+                        src={
+                          tokensListingAsDictionary[poolDetails.tokenB]
+                            ? tokensListingAsDictionary[poolDetails.tokenB].logoURI
+                            : '/images/placeholder_image.svg'
+                        }
+                        alt={poolDetails.tokenBSymbol}
+                      />
+                    </div>
                   </div>
-                </div>
-                <span>{poolDetails.tokenBSymbol}</span>
-              </label>
+                  <span>{poolDetails.tokenBSymbol}</span>
+                </label>
+              )}
             </div>
           </div>
         </div>

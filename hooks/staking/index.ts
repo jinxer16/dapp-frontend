@@ -1,11 +1,14 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useState } from 'react';
 import { hexStripZeros } from '@ethersproject/bytes';
+import { AddressZero } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
 import { JsonRpcProvider } from '@ethersproject/providers';
+import { formatEther } from '@ethersproject/units';
 import _ from 'lodash';
-import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/interfaces/IStakingPool.sol/IStakingPool.json';
+import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/StakingPool.sol/StakingPool.json';
 import { abi as erc20Abi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
+import { abi as ownableAbi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/access/Ownable.sol/Ownable.json';
 import { StakingPoolModel } from '../../api/models/staking';
 import chains from '../../assets/chains.json';
 import rpcCall from '../../api/rpc';
@@ -31,24 +34,28 @@ export const fetchStakingPoolInfo = (pool: string, chainId: number) => {
     if (!!pool) {
       (async () => {
         try {
-          const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+          const chain = chains[chainId as unknown as keyof typeof chains];
+          const url = chain.rpcUrl;
           const provider = new JsonRpcProvider(url, chainId);
           const stakingPoolContract = new Contract(pool, stakingPoolAbi, provider);
-          const tax = (await stakingPoolContract.stakingPoolTax()).toNumber();
+          const ownableContract = new Contract(pool, ownableAbi, provider);
+          const tax = await stakingPoolContract.stakingPoolTax();
           const tokenA = (await stakingPoolContract.tokenA()).toLowerCase();
           const tokenB = (await stakingPoolContract.tokenB()).toLowerCase();
-          const tokenAAPY = (await stakingPoolContract.tokenAAPY()).toNumber();
-          const tokenBAPY = (await stakingPoolContract.tokenBAPY()).toNumber();
-          const owner = await stakingPoolContract.owner();
+          const tokenAAPY = await stakingPoolContract.tokenAAPY();
+          const tokenBAPY = await stakingPoolContract.tokenBAPY();
+          const owner = await ownableContract.owner();
 
-          const tokenAContract = new Contract(tokenA, erc20Abi, provider);
+          const tokenAContract = tokenA === AddressZero ? undefined : new Contract(tokenA, erc20Abi, provider);
           const tokenBContract = new Contract(tokenB, erc20Abi, provider);
-          const tokenASymbol = await tokenAContract.symbol();
+          const tokenASymbol = !!tokenAContract ? await tokenAContract.symbol() : chain.symbol;
           const tokenBSymbol = await tokenBContract.symbol();
 
-          const tokenABalance = parseFloat(
-            _.divide(parseInt((await tokenAContract.balanceOf(pool)).toHexString()), Math.pow(10, await tokenAContract.decimals())).toPrecision(4)
-          );
+          const tokenABalance = !!tokenAContract
+            ? parseFloat(
+                _.divide(parseInt((await tokenAContract.balanceOf(pool)).toHexString()), Math.pow(10, await tokenAContract.decimals())).toPrecision(4)
+              )
+            : parseFloat(parseFloat(formatEther(await rpcCall(url, { method: 'eth_getBalance', params: [pool, 'latest'] }))).toPrecision(4));
           const tokenBBalance = parseFloat(
             _.divide(parseInt((await tokenBContract.balanceOf(pool)).toHexString()), Math.pow(10, await tokenBContract.decimals())).toPrecision(4)
           );

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
 import { isAddress } from '@ethersproject/address';
 import { hexStripZeros } from '@ethersproject/bytes';
+import { AddressZero } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatEthAddress } from 'eth-address';
@@ -85,8 +86,10 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
     if (poolInfo.tokenA || poolInfo.tokenB) {
       (async () => {
         const url = chain.rpcUrl;
-        const sToken = await Fetcher.fetchTokenData(chainId || 97, hexStripZeros(data.token), url);
-        if (_.isEqual(hexStripZeros(data.token.toLowerCase()), poolInfo.tokenA.toLowerCase())) {
+        const sToken = data.token !== AddressZero ? await Fetcher.fetchTokenData(chainId || 97, hexStripZeros(data.token), url) : undefined;
+        if (
+          _.isEqual(data.token !== AddressZero ? hexStripZeros(data.token.toLowerCase()) : data.token.toLowerCase(), poolInfo.tokenA.toLowerCase())
+        ) {
           const rToken = await Fetcher.fetchTokenData(chainId || 97, poolInfo.tokenB, url);
           setRewardToken(rToken);
         } else if (_.isEqual(hexStripZeros(data.token.toLowerCase()), poolInfo.tokenB.toLowerCase())) {
@@ -110,7 +113,10 @@ export default function StakeEventsTableBodyItem({ data }: IStakeEventsTableBody
       </div>
       <div className="hidden md:table-cell text-center">{new Date(data.timestamp).toLocaleDateString()}</div>
       <div className="table-cell text-center">
-        {!!stakedToken && _.divide(parseInt(data.amount), Math.pow(10, stakedToken.decimals)).toPrecision(4)} {stakedToken?.symbol}
+        {!!stakedToken
+          ? _.divide(parseInt(data.amount), Math.pow(10, stakedToken.decimals)).toPrecision(4)
+          : _.divide(parseInt(data.amount), Math.pow(10, 18)).toPrecision(4)}{' '}
+        {stakedToken?.symbol || chain.symbol}
       </div>
       <div className="table-cell text-center">
         {!!rewardToken && !!poolAndRewards && _.divide(poolAndRewards.reward, Math.pow(10, rewardToken.decimals)).toPrecision(4)}{' '}

@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import React, { useState } from 'react';
-import { RegularStakingPools, CreateNewStakingPool, PersonalPoolsAndEarnings } from '../routes/staking';
+import { RegularStakingPools, CreateNewStakingPool, PersonalPoolsAndEarnings, SpecialStakingPools } from '../routes/staking';
 
 enum Subroutes {
   REGULAR_POOLS,
@@ -30,12 +30,12 @@ export default function Staking() {
               >
                 Regular Staking Pools
               </button>
-              {/* <button
+              <button
                 className={activeRoute === Subroutes.SPECIAL_POOLS ? 'border-b-[1px] border-[#0cedfc]' : undefined}
                 onClick={() => setActiveRoute(Subroutes.SPECIAL_POOLS)}
               >
                 Special Staking Pools
-              </button> */}
+              </button>
               <button
                 className={activeRoute === Subroutes.CREATE_NEW_POOL ? 'border-b-[1px] border-[#0cedfc]' : undefined}
                 onClick={() => setActiveRoute(Subroutes.CREATE_NEW_POOL)}
@@ -59,6 +59,7 @@ export default function Staking() {
             {activeRoute === Subroutes.REGULAR_POOLS && <RegularStakingPools />}
             {activeRoute === Subroutes.CREATE_NEW_POOL && <CreateNewStakingPool />}
             {activeRoute === Subroutes.MY_POOLS && <PersonalPoolsAndEarnings />}
+            {activeRoute === Subroutes.SPECIAL_POOLS && <SpecialStakingPools />}
           </div>
         </div>
       </div>

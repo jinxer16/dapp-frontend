@@ -28,3 +28,12 @@ export const fetchAccountStakes = (chainId: number, owner: string, page: number 
       .catch(reject);
   });
 };
+
+export const fetchSpecialStakingPools = (chainId: number, page: number = 1) => {
+  return new Promise<{ totalItems: number; items: Array<string> }>((resolve, reject) => {
+    rootDAppClient
+      .get(`/staking/special/${hexValue(chainId)}?page=${page}`)
+      .then((res) => resolve(res.data.result))
+      .catch(reject);
+  });
+};

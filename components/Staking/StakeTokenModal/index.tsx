@@ -1,4 +1,5 @@
 import { Interface } from '@ethersproject/abi';
+import { AddressZero } from '@ethersproject/constants';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import { Transition, Dialog } from '@headlessui/react';
@@ -7,6 +8,7 @@ import { Fetcher, Token } from 'quasar-sdk-core';
 import { ToastContainer, toast } from 'react-toastify';
 import { abi as erc20Abi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import { abi as stakingPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/StakingPool.sol/StakingPool.json';
+import { abi as specialPoolAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/SpecialStakingPool.sol/SpecialStakingPool.json';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { useWeb3Context } from '../../../contexts/web3';
@@ -32,21 +34,26 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
 
   const initStake = useCallback(async () => {
     try {
-      if (!!selectedToken) {
+      if (!!selectedToken || token === AddressZero) {
         setIsStakeLoading(true);
         const provider = new Web3Provider(library?.givenProvider);
-        const tokenContract = new Contract(token, erc20Abi, provider.getSigner());
-        const poolContract = new Contract(pool, stakingPoolAbi, provider.getSigner());
-        const amountHex = `0x${_.multiply(stakingAmount, Math.pow(10, selectedToken?.decimals)).toString(16)}`;
-        const approvalTx = await tokenContract.approve(pool, amountHex);
-        await approvalTx.wait();
-        toast(`Pool approved to spend ${stakingAmount} ${selectedToken.symbol}`, { type: 'info' });
+        const tokenContract = token === AddressZero ? undefined : new Contract(token, erc20Abi, provider.getSigner());
+        const poolContract = new Contract(pool, token !== AddressZero ? stakingPoolAbi : specialPoolAbi, provider.getSigner());
+        const amountHex = `0x${_.multiply(stakingAmount, Math.pow(10, !!selectedToken ? selectedToken?.decimals : 18)).toString(16)}`;
 
-        const stakeTx = await poolContract.stakeAsset(token, amountHex);
+        if (!!selectedToken && !!tokenContract) {
+          const approvalTx = await tokenContract.approve(pool, amountHex);
+          await approvalTx.wait();
+          toast(`Pool approved to spend ${stakingAmount} ${selectedToken.symbol}`, { type: 'info' });
+        }
+
+        const stakeTx = token !== AddressZero ? await poolContract.stakeAsset(token, amountHex) : await poolContract.stakeEther({ value: amountHex });
         const stakeResponse = await stakeTx.wait();
         toast(
           <>
-            <span className="text-white font-Montserrat text-[16px]">You have successfully staked your {selectedToken.symbol}</span>{' '}
+            <span className="text-white font-Montserrat text-[16px]">
+              You have successfully staked your {!!selectedToken ? selectedToken.symbol : chain.symbol}
+            </span>{' '}
             <a href={chain.explorer.concat(`/tx/${stakeResponse.transactionHash}`)} target="_blank" rel="noreferrer">
               View on explorer
             </a>
@@ -60,15 +67,15 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
       toast(error.message, { type: 'error' });
       console.log(error);
     }
-  }, [chain.explorer, library?.givenProvider, pool, selectedToken, stakingAmount, token]);
+  }, [chain.explorer, chain.symbol, library?.givenProvider, pool, selectedToken, stakingAmount, token]);
 
   useEffect(() => {
-    if (token && chainId) {
+    if (token && chainId && token !== AddressZero) {
       (async () => {
         const t = await Fetcher.fetchTokenData(chainId || 97, token);
         setSelectedToken(t);
       })();
-    }
+    } else setSelectedToken(undefined);
   }, [token, chainId]);
 
   useEffect(() => {
@@ -134,7 +141,7 @@ export default function StakeTokenModal({ token, pool, isOpen, onClose }: IStake
                     </div>
                     <button
                       onClick={initStake}
-                      disabled={!selectedToken || isStakeLoading || stakingAmount <= 0}
+                      disabled={(!selectedToken && token !== AddressZero) || isStakeLoading || stakingAmount <= 0}
                       className={`btn bg-[#0cedfc] rounded-[10px] text-[#000] w-full ${isStakeLoading ? 'loading' : ''}`}
                     >
                       Stake
