@@ -15,9 +15,10 @@ import { addToMetamask } from '../../../utils';
 
 type IStakingPoolCardProps = {
   pool: string;
+  poolType: 'special' | 'regular';
 };
 
-export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
+export default function StakingPoolCard({ pool, poolType }: IStakingPoolCardProps) {
   const { chainId } = useWeb3Context();
   const { tokensListingAsDictionary } = useAPIContext();
   const [showDetails, setShowDetails] = useState<boolean>(false);
@@ -79,8 +80,8 @@ export default function StakingPoolCard({ pool }: IStakingPoolCardProps) {
                 {poolDetails.tokenASymbol}-{poolDetails.tokenBSymbol}
               </span>
             </div>
-            <div className={`${poolDetails.tokenA === AddressZero ? 'bg-[gold]/[.27]' : 'bg-[#0cedfc]/[.27]'} px-[2px] py-[2px] rounded-[3px]`}>
-              <span className="text-[#0cedfc] font-[400] text-[12px]">{poolDetails.tokenA === AddressZero ? 'Special' : 'Regular'}</span>
+            <div className={`${poolType === 'special' ? 'bg-[gold]/[.27]' : 'bg-[#0cedfc]/[.27]'} px-[2px] py-[2px] rounded-[3px]`}>
+              <span className="text-[#0cedfc] font-[400] text-[12px]">{poolType === 'special' ? 'Special' : 'Regular'}</span>
             </div>
           </div>
           <div className="flex justify-between items-center w-full">
