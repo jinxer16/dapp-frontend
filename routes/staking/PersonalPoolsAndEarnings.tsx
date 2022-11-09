@@ -29,7 +29,7 @@ export default function PersonalPoolsAndEarnings() {
             <>
               {_.map(accountStakingPools.items, (pool, index) => (
                 <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
-                  <StakingPoolCard key={index} pool={pool} />
+                  <StakingPoolCard key={index} pool={pool} poolType="regular" />
                 </div>
               ))}
             </>
