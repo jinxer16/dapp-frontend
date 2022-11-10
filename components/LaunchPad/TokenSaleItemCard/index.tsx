@@ -1,47 +1,76 @@
-import React from 'react';
+import { Fetcher, Token } from 'quasar-sdk-core';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FiHeart, FiBell } from 'react-icons/fi';
+import { formatEther } from '@ethersproject/units';
+import { TokenSaleItemModel } from '../../../api/models/launchpad';
+import { useAPIContext } from '../../../contexts/api';
+import { useWeb3Context } from '../../../contexts/web3';
+import chains from '../../../assets/chains.json';
 
-type IReuseableCardProps = {
-  logo?: string;
-  tagName: 'gold' | 'silver' | 'bronze';
-  tagColor?: any;
-  name: string;
-  maxContribution: string;
-  hardCap: string;
-  softCap: string;
-  liquidity: string;
-  lockTime: string;
-  progress: number;
-};
 export default function PresaleItemCard({
-  logo,
-  tagName,
-  tagColor,
-  name,
-  maxContribution,
+  id,
+  token,
+  tokensForSale,
   hardCap,
   softCap,
-  liquidity,
-  lockTime,
-  progress
-}: IReuseableCardProps) {
+  presaleRate,
+  minContribution,
+  maxContribution,
+  startTime,
+  proceedsTo,
+  endTime,
+  admin,
+  rank
+}: TokenSaleItemModel) {
+  const { tokensListingAsDictionary } = useAPIContext();
+  const { chainId } = useWeb3Context();
+  const [tokenObject, setTokenObject] = useState<Token>();
+
+  const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
+
+  useEffect(() => {
+    if (!!chainId) {
+      (async () => {
+        try {
+          const t = await Fetcher.fetchTokenData(chainId, token, chain.rpcUrl);
+          setTokenObject(t);
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [chain.rpcUrl, chainId, token]);
+
   return (
     <>
       <div className="flex w-80 h-auto bg-[#161525] m-1 p-5 rounded-lg lg:w-85">
         <div className="w-full flex flex-col ">
           <div className="flex items-center justify-between h-10 w-full">
             <div className="flex">
-              <img src={logo} alt={name} className="w-[40px] h-[40px] rounded-[50px]" />
+              <img
+                src={
+                  tokensListingAsDictionary[token.toLowerCase()]
+                    ? tokensListingAsDictionary[token.toLowerCase()].logoURI
+                    : '/images/placeholder_image.svg'
+                }
+                alt={token}
+              />
             </div>
             <div className="flex w-2/5 justify-around items-center">
-              <span className={`flex items-center ${tagColor} text-white text-[10px] font-[600] rounded p-1`}>{tagName}</span>
+              <span
+                className={`flex items-center ${
+                  rank !== 'unknown' ? (rank === 'gold' ? 'bg-[#d4af37]' : rank === 'silver' ? 'bg-[#bcc6cc]' : 'bg-[#cd7f32]') : 'bg-[#666362]'
+                } text-white text-[10px] font-[600] rounded p-1`}
+              >
+                {rank}
+              </span>
             </div>
           </div>
           <div className="flex flex-col w-full">
-            <h2 className="text-[20px] uppercase text-[#fff] font-[800] pt-2 font-Montserrat">{name}</h2>
+            <h2 className="text-[20px] uppercase text-[#fff] font-[800] pt-2 font-Montserrat">{tokenObject?.name}</h2>
             <h3 className="flex items-center justify-between text-[1rem] text-[#fff] capitalize font-[700] pb-2 font-Montserrat">
               <span>Max Contribution:</span>
-              <span>{maxContribution}</span>
+              <span>{formatEther(maxContribution)}</span>
             </h3>
           </div>
           <div className="flex flex-col my-5">

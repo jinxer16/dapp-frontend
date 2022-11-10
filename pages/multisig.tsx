@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiSearch, FiChevronRight, FiKey, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
+import { FiPlus, FiChevronRight, FiKey, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import _ from 'lodash';
 import { formatEthAddress } from 'eth-address';
 import { useAPIContext } from '../contexts/api';

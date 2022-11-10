@@ -22,7 +22,6 @@ export default class CustomDocument extends Document {
           <link rel="manifest" href="/manifest.json" />
           <meta name="description" content="The Vefi DApps is a product of the Vefi Ecosystem that houses commonly used decentralized platforms." />
           <meta name="robots" content="index, follow" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta
             name="keywords"
             content="dapps, vefi, dex, launchpad, multisig, staking pools, stake, bitgert, binance, brise, bsc, omax, gatechain, multichain"
