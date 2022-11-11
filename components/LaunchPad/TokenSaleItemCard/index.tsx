@@ -1,32 +1,72 @@
 import { Fetcher, Token } from 'quasar-sdk-core';
-import React, { useEffect, useMemo, useState } from 'react';
-import { FiHeart, FiBell } from 'react-icons/fi';
-import { formatEther } from '@ethersproject/units';
+import React, { MouseEventHandler, useEffect, useMemo, useState } from 'react';
+import Countdown from 'react-countdown';
+import { formatEther, formatUnits } from '@ethersproject/units';
+import _ from 'lodash';
+import millify from 'millify';
 import { TokenSaleItemModel } from '../../../api/models/launchpad';
 import { useAPIContext } from '../../../contexts/api';
 import { useWeb3Context } from '../../../contexts/web3';
 import chains from '../../../assets/chains.json';
+import saleCreators from '../../../assets/token_sales_creators.json';
+import { fetchSaleItemInfo } from '../../../hooks/launchpad';
+
+type ISaleItemCardProps = {
+  data: TokenSaleItemModel;
+  saleType: 'public' | 'private';
+  onClick: (val: TokenSaleItemModel) => void;
+};
+
+const Timer = ({ date, completionText }: any) => {
+  return (
+    <Countdown
+      date={date}
+      renderer={({ days, hours, minutes, seconds, completed }) => (
+        <>
+          {completed ? (
+            <span className="font-Montserrat text-white font-[700] uppercase">{completionText}</span>
+          ) : (
+            <span className="font-Montserrat text-white font-[700] text-[16px]">
+              {days} Day(s) : {hours} Hr(s) : {minutes} Min(s) : {seconds} Sec(s)
+            </span>
+          )}
+        </>
+      )}
+    />
+  );
+};
 
 export default function PresaleItemCard({
-  id,
-  token,
-  tokensForSale,
-  hardCap,
-  softCap,
-  presaleRate,
-  minContribution,
-  maxContribution,
-  startTime,
-  proceedsTo,
-  endTime,
-  admin,
-  rank
-}: TokenSaleItemModel) {
+  data: {
+    id,
+    token,
+    hardCap,
+    softCap,
+    minContribution,
+    maxContribution,
+    startTime,
+    endTime,
+    rank,
+    tokensForSale,
+    presaleRate,
+    proceedsTo,
+    admin,
+    chainId: chainid
+  },
+  saleType,
+  onClick
+}: ISaleItemCardProps) {
   const { tokensListingAsDictionary } = useAPIContext();
   const { chainId } = useWeb3Context();
   const [tokenObject, setTokenObject] = useState<Token>();
 
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
+  const saleCreator = useMemo(
+    () =>
+      saleCreators[chainId as unknown as keyof typeof saleCreators]?.[saleType === 'private' ? 'privateTokenSaleCreator' : 'publicTokenSaleCreator'],
+    [chainId, saleType]
+  );
+  const { totalEtherRaised } = fetchSaleItemInfo(saleCreator, id);
 
   useEffect(() => {
     if (!!chainId) {
@@ -43,7 +83,27 @@ export default function PresaleItemCard({
 
   return (
     <>
-      <div className="flex w-80 h-auto bg-[#161525] m-1 p-5 rounded-lg lg:w-85">
+      <div
+        onClick={() =>
+          onClick({
+            id,
+            token,
+            hardCap,
+            softCap,
+            minContribution,
+            maxContribution,
+            startTime,
+            endTime,
+            rank,
+            tokensForSale,
+            presaleRate,
+            proceedsTo,
+            admin,
+            chainId: chainid
+          })
+        }
+        className="flex w-80 h-auto bg-[#161525] m-1 p-5 rounded-lg lg:w-85 cursor-pointer"
+      >
         <div className="w-full flex flex-col ">
           <div className="flex items-center justify-between h-10 w-full">
             <div className="flex">
@@ -66,54 +126,64 @@ export default function PresaleItemCard({
               </span>
             </div>
           </div>
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full gap-1">
             <h2 className="text-[20px] uppercase text-[#fff] font-[800] pt-2 font-Montserrat">{tokenObject?.name}</h2>
             <h3 className="flex items-center justify-between text-[1rem] text-[#fff] capitalize font-[700] pb-2 font-Montserrat">
               <span>Max Contribution:</span>
-              <span>{formatEther(maxContribution)}</span>
+              <span>
+                {millify(parseFloat(formatEther(maxContribution)))} {chain?.symbol}
+              </span>
+            </h3>
+            <h3 className="flex items-center justify-between text-[1rem] text-[#fff] capitalize font-[700] pb-2 font-Montserrat">
+              <span>Min Contribution:</span>
+              <span>
+                {millify(parseFloat(formatEther(minContribution)))} {chain?.symbol}
+              </span>
             </h3>
           </div>
           <div className="flex flex-col my-5">
-            <span className="text-[#fff] font-Montserrat font-[600] pb-[0.099rem]">Progress ({progress.toFixed(3)}%)</span>
+            <span className="text-[#fff] font-Montserrat font-[600] pb-[0.099rem]">
+              Progress ({_.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap)}%)
+            </span>
             <div className="h-[8px] bg-[#1673B9]">
-              <div className="h-full bg-green-400" style={{ width: progress + '%' }} />
+              <div className="h-full bg-green-400" style={{ width: _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) + '%' }} />
             </div>
             <div className="flex justify-between text-center pt-[0.099rem]">
               <span className="text-[#fff] font-bold font-Montserrat">0</span>
-              <span className="text-[#fff] font-bold font-Montserrat">300</span>
+              <span className="text-[#fff] font-bold font-Montserrat">{millify(parseFloat(formatEther(hardCap)), { precision: 4 })}</span>
             </div>
           </div>
           <div className="flex flex-col">
             <div className="flex justify-between mt-2">
               <span className="text-[#fff] font-bold font-Montserrat">Hard Cap:</span>
-              <span className="text-[#fff] font-bold font-Montserrat">{hardCap}</span>
+              <span className="text-[#fff] font-bold font-Montserrat">
+                {millify(parseFloat(formatEther(hardCap)), { precision: 4 })} {chain?.symbol}
+              </span>
             </div>
             <div className="flex justify-between  mt-2">
               <span className="text-[#fff] font-bold font-Montserrat">Soft Cap:</span>
-              <span className="text-[#fff] font-bold font-Montserrat">{softCap}</span>
+              <span className="text-[#fff] font-bold font-Montserrat">
+                {millify(parseFloat(formatEther(softCap)), { precision: 4 })} {chain?.symbol}
+              </span>
             </div>
             <div className="flex justify-between  mt-2">
-              <span className="text-[#fff] font-bold font-Montserrat">Liquidity:</span>
-              <span className="text-[#fff] font-bold font-Montserrat">{liquidity}</span>
-            </div>
-            <div className="flex justify-between  mt-2">
-              <span className="text-[#fff] font-bold font-Montserrat">Lock Time:</span>
-              <span className="text-[#fff] font-bold font-Montserrat">{lockTime}</span>
+              <span className="text-[#fff] font-bold font-Montserrat">
+                {tokenObject?.symbol} per {chain.symbol}:
+              </span>
+              <span className="text-[#fff] font-bold font-Montserrat">
+                {tokenObject && millify(parseFloat(formatUnits(presaleRate, tokenObject.decimals)), { precision: 4 })} {tokenObject?.symbol}
+              </span>
             </div>
           </div>
           <div className="flex ">
-            <div className="flex w-full justify-between items-center mt-5 border-t-[0.03rem] border-t-[#5B5B5B] pt-3">
+            <div className="flex w-full flex-col justify-center items-center mt-5 border-t-[0.03rem] border-t-[#5B5B5B] pt-3 gap-2">
               <div className="flex flex-col">
-                <span className="text-[whitesmoke] text-sm  font-Montserrat">Sales Ends In:</span>
-                <span className="text-[whitesmoke] text-sm tracking-[0.16rem]  font-Montserrat">00:56:12:45</span>
+                <span className="text-[whitesmoke] text-sm font-Montserrat">Sale Starts In:</span>
+                <Timer date={parseInt(startTime)} completionText="Started" />
               </div>
-              <div className="flex items-center justify-between text-[#fff] font-bold text-[1.5rem]">
-                <span className="pr-[8px]">
-                  <FiHeart />
-                </span>
-                <span className="bg-[#1673B9] rounded-[7px] p-[0.5rem]">
-                  <FiBell />
-                </span>
+              <div className="flex flex-col">
+                <span className="text-[whitesmoke] text-sm font-Montserrat">Sales Ends In:</span>
+                <Timer date={parseInt(endTime)} completionText="Ended" />
               </div>
             </div>
           </div>
