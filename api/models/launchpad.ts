@@ -15,4 +15,13 @@ export interface TokenSaleItemModel {
   createdAt?: any;
   updatedAt?: any;
   rank: 'gold' | 'silver' | 'bronze' | 'unknown';
+  details?: {
+    description?: string;
+    urls?: {
+      website?: string;
+      telegram?: string;
+      discord?: string;
+      twitter?: string;
+    };
+  };
 }

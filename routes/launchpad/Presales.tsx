@@ -1,15 +1,18 @@
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import Countdown from 'react-countdown';
 import { Interface } from '@ethersproject/abi';
 import { isAddress } from '@ethersproject/address';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
-import { formatEther, parseEther, parseUnits } from '@ethersproject/units';
+import { formatEther, formatUnits, parseEther, parseUnits } from '@ethersproject/units';
 import { Fetcher, Token } from 'quasar-sdk-core';
 import _ from 'lodash';
-import { FiPlus, FiChevronDown, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
+import { FiPlus, FiChevronDown, FiArrowLeft, FiArrowRight, FiGlobe, FiTwitter } from 'react-icons/fi';
+import { FaDiscord, FaTelegram } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import { abi as saleCreatorAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/TokenSaleCreator.sol/TokenSaleCreator.json';
 import { abi as erc20Abi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
+import millify from 'millify';
 import { TokenSaleItemCard } from '../../components/LaunchPad';
 import { useWeb3Context } from '../../contexts/web3';
 import chains from '../../assets/chains.json';
@@ -17,6 +20,7 @@ import tokenSaleCreators from '../../assets/token_sales_creators.json';
 import { useAPIContext } from '../../contexts/api';
 import rpcCall from '../../api/rpc';
 import { TokenSaleItemModel } from '../../api/models/launchpad';
+import { fetchSaleItemInfo } from '../../hooks/launchpad';
 
 enum Subroutes {
   ALL_ITEMS,
@@ -52,8 +56,278 @@ const AllSalesRoute = ({ onClick }: any) => {
   );
 };
 
-const SelectedSaleItemRoute = ({}: TokenSaleItemModel) => {
-  return <>Heya</>;
+const SelectedSaleItemRoute = ({
+  startTime,
+  token,
+  details,
+  rank,
+  id,
+  hardCap,
+  softCap,
+  endTime,
+  tokensForSale,
+  minContribution,
+  maxContribution,
+  presaleRate
+}: TokenSaleItemModel) => {
+  const { tokensListingAsDictionary } = useAPIContext();
+  const { chainId, library, account } = useWeb3Context();
+  const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
+  const publicSaleCreator = useMemo(() => tokenSaleCreators[chainId as unknown as keyof typeof tokenSaleCreators].publicTokenSaleCreator, [chainId]);
+  const [tk, setToken] = useState<Token>();
+  const [totalSupply, setTotalSupply] = useState<string>('0');
+  const { totalEtherRaised } = fetchSaleItemInfo(publicSaleCreator, id);
+  const [amountContributed, setAmountContributed] = useState<string>('0');
+  const [expectedBalance, setExpectedBalance] = useState<string>('0');
+
+  useEffect(() => {
+    if (!!token && !!chain && !!chainId) {
+      (async () => {
+        try {
+          const t = await Fetcher.fetchTokenData(chainId || 97, token, chain?.rpcUrl);
+          const erc20Interface = new Interface(erc20Abi);
+          const totalSupplyHash = erc20Interface.getSighash('totalSupply()');
+          const totalSupplyCall = await rpcCall(chain.rpcUrl, { method: 'eth_call', params: [{ to: token, data: totalSupplyHash }, 'latest'] });
+          setToken(t);
+          setTotalSupply(formatUnits(totalSupplyCall, t.decimals));
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [chain, chainId, token]);
+
+  useEffect(() => {
+    if (!!account && !!publicSaleCreator && !!tk) {
+      (async () => {
+        try {
+          const saleCreatorAbiInterface = new Interface(saleCreatorAbi);
+          const data = saleCreatorAbiInterface.encodeFunctionData('amountContributed(bytes32,address)', [id, account]);
+          const amount = await rpcCall(chain.rpcUrl, { method: 'eth_call', params: [{ to: publicSaleCreator, data }, 'latest'] });
+          const data2 = saleCreatorAbiInterface.encodeFunctionData('balance(bytes32,address)', [id, account]);
+          const bal = await rpcCall(chain.rpcUrl, { method: 'eth_call', params: [{ to: publicSaleCreator, data: data2 }, 'latest'] });
+          setAmountContributed(formatEther(amount));
+          setExpectedBalance(formatUnits(bal, tk?.decimals));
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [account, chain.rpcUrl, id, publicSaleCreator, tk, tk?.decimals]);
+
+  return (
+    <div className="flex flex-col md:flex-row justify-evenly items-center gap-6">
+      <div className="flex flex-col bg-[#161525] rounded-[31px] flex-1 gap-4">
+        <div className="w-full bg-[url('/images/bg_sale_item.png')] bg-cover rounded-t-[inherit]">
+          <div className="flex justify-between items-end w-full gap-3 relative bottom-[-30px] px-2">
+            <div className="flex justify-center items-center gap-4">
+              <div className="avatar">
+                <div className="w-20 rounded-full">
+                  <img
+                    src={
+                      tokensListingAsDictionary[token.toLowerCase()]
+                        ? tokensListingAsDictionary[token.toLowerCase()].logoURI
+                        : '/images/placeholder_image.svg'
+                    }
+                    alt={token}
+                  />
+                </div>
+              </div>
+              {details?.urls && (
+                <div className="flex justify-center items-center gap-2 text-[#fff] text-[25px] relative bottom-[-25px]">
+                  {details.urls.website && (
+                    <a href={details.urls.website} target="_blank" rel="noreferrer">
+                      <FiGlobe />
+                    </a>
+                  )}
+                  {details.urls.telegram && (
+                    <a href={details.urls.telegram} target="_blank" rel="noreferrer">
+                      <FaTelegram />
+                    </a>
+                  )}
+                  {details.urls.discord && (
+                    <a href={details.urls.discord} target="_blank" rel="noreferrer">
+                      <FaDiscord />
+                    </a>
+                  )}
+                  {details.urls.twitter && (
+                    <a href={details.urls.twitter} target="_blank" rel="noreferrer">
+                      <FiTwitter />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+            <span
+              className={`flex items-center ${
+                rank !== 'unknown' ? (rank === 'gold' ? 'bg-[#d4af37]' : rank === 'silver' ? 'bg-[#bcc6cc]' : 'bg-[#cd7f32]') : 'bg-[#666362]'
+              } text-white text-[10px] font-[600] rounded p-1`}
+            >
+              {rank}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col w-full gap-3 justify-center items-center py-4">
+          <h4 className="font-[700] text-white/10 text-[22px] md:text-[37px] font-MontserratAlt">Project Description</h4>
+          {details?.description ? (
+            <p className="text-white font-Inter font-[500] text-[16px] w-full text-center">{details.description}</p>
+          ) : (
+            <span className="font-Montserrat font-[600] text-red-500 uppercase text-[28px] md:text-[40px]">No Description</span>
+          )}
+        </div>
+        <div className="flex flex-col justify-center items-center gap-2 w-full px-4 py-10">
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Presale ID</span>
+            <div className="flex flex-col justify-end items-end gap-1 px-1">
+              <p className="text-[#197fcb] break-all text-[12px] font-[500] font-Montserrat w-full">{id}</p>
+              <p className="text-white font-Inter font-[500] text-[9px] text-center">Do not send funds directly to this ID</p>
+            </div>
+          </div>
+          {!!tk && (
+            <>
+              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                <span className="font-Inter text-white font-[500] text-[16px]">Token Name</span>
+                <div className="flex flex-col justify-center items-center gap-1 px-1">
+                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.name}</p>
+                </div>
+              </div>
+              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                <span className="font-Inter text-white font-[500] text-[16px]">Token Symbol</span>
+                <div className="flex flex-col justify-center items-center gap-1 px-1">
+                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.symbol}</p>
+                </div>
+              </div>
+              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                <span className="font-Inter text-white font-[500] text-[16px]">Total Supply</span>
+                <div className="flex flex-col justify-center items-center gap-1 px-1">
+                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{totalSupply}</p>
+                </div>
+              </div>
+              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                <span className="font-Inter text-white font-[500] text-[16px]">Tokens For Presale</span>
+                <div className="flex flex-col justify-center items-center gap-1 px-1">
+                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{formatUnits(tokensForSale, tk.decimals)}</p>
+                </div>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Soft Cap</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                {formatEther(softCap)} {chain?.symbol}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Hard Cap</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                {formatEther(hardCap)} {chain?.symbol}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Presale Start Time</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(startTime)).toUTCString()}</p>
+            </div>
+          </div>
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Presale End Time</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(endTime)).toUTCString()}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col bg-[#161215] rounded-[15px] gap-3 px-6 py-2">
+        <div className="flex flex-col gap-3 w-full justify-center items-center">
+          <span className="text-[whitesmoke] text-[14px] font-Montserrat font-semibold">Sale Starts In:</span>
+          <Countdown
+            date={parseInt(startTime)}
+            renderer={({ days, hours, minutes, seconds, completed }) => (
+              <>
+                {completed ? (
+                  <span className="font-Montserrat text-white font-[700] uppercase">Started</span>
+                ) : (
+                  <span className="font-Montserrat text-white font-[700] text-[16px]">
+                    {days} Day(s) : {hours} Hr(s) : {minutes} Min(s) : {seconds} Sec(s)
+                  </span>
+                )}
+              </>
+            )}
+          />
+          <div className="flex flex-col gap-1 w-full justify-center items-center">
+            <div className="h-[8px] bg-[#1673B9] w-full">
+              <div className="h-full bg-green-400" style={{ width: _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) + '%' }} />
+            </div>
+            <div className="flex justify-between text-center pt-[0.099rem] w-full">
+              <span className="text-[#fff] font-bold font-Montserrat">0</span>
+              <span className="text-[#fff] font-bold font-Montserrat">{millify(parseFloat(formatEther(hardCap)), { precision: 4 })}</span>
+            </div>
+          </div>
+          <div className="flex flex-col justify-center items-center gap-2 w-full border-b border-b-[#fff]/20 py-4">
+            <span className="text-[#fff] font-[600] font-MontserratAlt">Contribute</span>
+            <div className="w-full flex md:flex-row justify-center items-center gap-2">
+              <div className="bg-[#282736] rounded-[15px] gap-2 px-1 py-1 flex-1 flex justify-between items-center w-1/2">
+                <input
+                  type="number"
+                  className="p-[2px] bg-transparent text-white border-0 w-full outline-0 appearance-none font-[700] text-[18px] font-MontserratAlt"
+                />
+                <button className="text-[#1673b9] font-MontserratAlt text-[12px] bg-transparent px-1 py-1">Max</button>
+              </div>
+              <button className="bg-[#282736] rounded-[15px] gap-2 px-6 py-2 text-[#ffeb82] font-MontserratAlt flex-1">Buy</button>
+            </div>
+          </div>
+          <div className="flex flex-col w-full gap-3 justify-center items-center">
+            <span className="font-Montserrat text-white text-[12px] font-[600]">Your Contribution:</span>
+            <span className="font-Montserrat text-[#289bf1] text-[12px] font-[700]">
+              {amountContributed} {chain?.symbol}
+            </span>
+          </div>
+        </div>
+        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+          <span className="font-Inter text-white font-[500] text-[16px]">Minimum Buy</span>
+          <div className="flex flex-col justify-center items-center gap-1 px-1">
+            <p className="text-white font-Inter font-[500] text-[16px] text-center">
+              {formatEther(minContribution)} {chain?.symbol}
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+          <span className="font-Inter text-white font-[500] text-[16px]">Maximum Buy</span>
+          <div className="flex flex-col justify-center items-center gap-1 px-1">
+            <p className="text-white font-Inter font-[500] text-[16px] text-center">
+              {formatEther(maxContribution)} {chain?.symbol}
+            </p>
+          </div>
+        </div>
+        {!!tk && (
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Rate</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                1 {chain?.symbol} {'<=>'} {formatUnits(presaleRate, tk.decimals)} {tk.symbol}
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+          <span className="font-Inter text-white font-[500] text-[16px]">My Balance</span>
+          <div className="flex flex-col justify-center items-center gap-1 px-1">
+            <p className="text-white font-Inter font-[500] text-[16px] text-center">
+              {expectedBalance} {tk?.symbol}
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center w-full gap-3">
+          <button className="btn btn-success flex-1 px-1 py-1">Harvest Tokens</button>
+          <button className="btn btn-warning flex-1 px-1 py-1">Emergency Withdrawal</button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const CreateSaleRoute = () => {
@@ -459,42 +733,16 @@ export default function Presales() {
               </div>
               <ul tabIndex={0} className="dropdown-content menu  shadow bg-base-100 rounded-box w-full text-[12px]">
                 <li>
-                  <a>Active</a>
+                  <a>All</a>
                 </li>
                 <li>
-                  <a>Pending</a>
+                  <a>Gold</a>
                 </li>
                 <li>
-                  <a>Failed</a>
+                  <a>Silver</a>
                 </li>
                 <li>
-                  <a>Successful</a>
-                </li>
-              </ul>
-            </div>
-            <div className="dropdown">
-              <div className="flex flex-col justify-center items-center">
-                <span className="text-[#c7c7c7] font-[600] text-[10px] ml-[-34px] font-Montserrat">Sort By</span>
-                <label
-                  tabIndex={0}
-                  className="border-[#1673b9] border-[1px] p-[5px] px-3 flex justify-center items-center rounded-[5px] text-[#fff] text-[11px] bg-transparent m-2"
-                >
-                  <span className="font-[600] mr-[4px]">No Filter</span>
-                  <FiChevronDown />
-                </label>
-              </div>
-              <ul tabIndex={0} className="dropdown-content menu shadow bg-base-100 rounded-box w-full text-[12px]">
-                <li>
-                  <a>Active</a>
-                </li>
-                <li>
-                  <a>Pending</a>
-                </li>
-                <li>
-                  <a>Failed</a>
-                </li>
-                <li>
-                  <a>Successful</a>
+                  <a>Bronze</a>
                 </li>
               </ul>
             </div>

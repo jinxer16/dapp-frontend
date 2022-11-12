@@ -8,8 +8,10 @@ module.exports = {
       }
     },
     fontFamily: {
-      poppins: ['Poppins'],
-      Montserrat: ['Montserrat']
+      poppins: ['Poppins', 'sans-serif'],
+      Montserrat: ['Montserrat', 'sans-serif'],
+      MontserratAlt: ['Montserrat Alternates', 'sans-serif'],
+      Inter: ['Inter', 'sans-serif']
     }
   },
   plugins: [require('daisyui')]
