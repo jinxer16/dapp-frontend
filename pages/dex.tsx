@@ -29,7 +29,7 @@ export default function Dex() {
           </ToggleButton>
         </div>
       </div>
-      <div className="flex justify-center items-center my-16">
+      <div className="flex justify-center items-center my-16 px-1">
         {route === Route.SWAP && <Swap />}
         {route === Route.LIQUIDITY && <Liquidity />}
         {route === Route.STATS && <Stats />}
