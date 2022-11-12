@@ -251,16 +251,16 @@ export default function Swap() {
               </div>
             </div>
             <div className="flex justify-between items-center w-full mt-[23px]">
-              <div className="flex justify-between items-center md:w-2/5 gap-1">
+              <div className="flex justify-between items-center md:w-2/5 gap-2">
                 <div className="flex justify-center w-1/3">
                   <span className="text-white font-[700] text-[16px] md:text-[20px] font-Montserrat">{token1Price}</span>
                 </div>
-                <div className="flex justify-center w-1/3">
+                <div className="flex justify-center flex-1">
                   <span className="text-white text-[16px] font-[700] font-Montserrat">
                     {firstSelectedToken.symbol}/{secondSelectedToken.symbol}
                   </span>
                 </div>
-                <div className="flex justify-center w-1/3">
+                <div className="flex justify-center w-1/3 flex-1 gap-3">
                   <span
                     className={`${
                       tokensPercentageChangeType.token0PChangeType === 'INCREASE'

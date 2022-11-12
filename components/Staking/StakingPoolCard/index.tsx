@@ -5,6 +5,7 @@ import { AddressZero } from '@ethersproject/constants';
 import { formatEthAddress } from 'eth-address';
 import { FiX } from 'react-icons/fi';
 import { Fetcher, Token } from 'quasar-sdk-core';
+import millify from 'millify';
 import { useAPIContext } from '../../../contexts/api';
 import { useWeb3Context } from '../../../contexts/web3';
 import { fetchStakingPoolInfo } from '../../../hooks/staking';
@@ -129,11 +130,11 @@ export default function StakingPoolCard({ pool, poolType }: IStakingPoolCardProp
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center gap-2 w-full">
                   <span className="text-[16px] text-[#fff]">Total {poolDetails.tokenASymbol} Staked</span>
-                  <span className="text-[#fff] font-[500] text-[15px]">{poolDetails.tokenABalance}</span>
+                  <span className="text-[#fff] font-[500] text-[15px]">{millify(poolDetails.tokenABalance)}</span>
                 </div>
                 <div className="flex justify-between items-center gap-2 w-full">
                   <span className="text-[16px] text-[#fff]">Total {poolDetails.tokenBSymbol} Staked</span>
-                  <span className="text-[#fff] font-[500] text-[15px]">{poolDetails.tokenBBalance}</span>
+                  <span className="text-[#fff] font-[500] text-[15px]">{millify(poolDetails.tokenBBalance)}</span>
                 </div>
                 <div className="flex justify-between items-center gap-2 w-full">
                   {poolDetails.tokenA !== AddressZero && (

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCopy, FiX, FiCheck } from 'react-icons/fi';
 import { MdSend } from 'react-icons/md';
 import { toast, ToastContainer } from 'react-toastify';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Interface } from '@ethersproject/abi';
 import { isAddress } from '@ethersproject/address';
 import { BigNumber } from '@ethersproject/bignumber';
@@ -156,9 +157,11 @@ export default function MultiSigItem({ wallet }: IMultiSigItemProps) {
       <div className="bg-[#f5f5f5]/50 w-full h-full overflow-auto flex flex-col gap-2 justify-start items-center">
         <div className="flex justify-center items-center gap-2 w-full">
           <span className="text-[16px] text-white/90 font-poppins font-[900]">{wallet}</span>
-          <button className="btn btn-ghost">
-            <FiCopy />
-          </button>
+          <CopyToClipboard text={wallet}>
+            <button className="btn btn-ghost">
+              <FiCopy />
+            </button>
+          </CopyToClipboard>
         </div>
         <div className="stats shadow stats-vertical md:stats-horizontal">
           <div className="stat place-items-center">

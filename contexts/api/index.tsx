@@ -8,6 +8,8 @@ import { convertListingToDictionary } from '../../api/models/utils';
 import { fetchAccountStakes, fetchAccountStakingPools, fetchStakingPools, fetchSpecialStakingPools } from '../../api/staking';
 import { StakeEventModel } from '../../api/models/staking';
 import { fetchAllMultiSigWalletsOfAccount } from '../../api/multisig';
+import { TokenSaleItemModel } from '../../api/models/launchpad';
+import { fetchAllPublicSaleItems, fetchAllPrivateSaleItems } from '../../api/launchpad';
 
 type APIContextType = {
   tokensListing: Array<ListingModel>;
@@ -37,6 +39,14 @@ type APIContextType = {
     totalItems: number;
     items: Array<string>;
   };
+  publicSaleItems: {
+    totalItems: number;
+    items: Array<TokenSaleItemModel>;
+  };
+  privateSaleItems: {
+    totalItems: number;
+    items: Array<TokenSaleItemModel>;
+  };
   importedMultiSigs: { [chainId: number]: Array<string> };
   importMultiSigs: (addresses: Array<string>) => void;
   topPairs: Array<string>;
@@ -53,6 +63,8 @@ type APIContextType = {
   fetchStakesByAccount: (page: number) => void;
   fetchMultiSigsByAccount: (page: number) => void;
   fetchSpecialPools: (page: number) => void;
+  fetchPublicTokenSaleItems: (page: number) => void;
+  fetchPrivateTokenSaleItems: (page: number) => void;
 };
 
 const APIContext = createContext({} as APIContextType);
@@ -96,6 +108,14 @@ export const APIContextProvider = ({ children }: any) => {
   const [importedPools, setImportedPools] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
   const [importedMultiSigs, setImportedMultiSigs] = useState<{ [chainId: number]: Array<string> }>({ 97: [] });
   const [specialStakingPools, setSpecialStakingPools] = useState<{ totalItems: number; items: Array<string> }>({
+    totalItems: 0,
+    items: []
+  });
+  const [publicSaleItems, setPublicSaleItems] = useState<{ totalItems: number; items: Array<TokenSaleItemModel> }>({
+    totalItems: 0,
+    items: []
+  });
+  const [privateSaleItems, setPrivateSaleItems] = useState<{ totalItems: number; items: Array<TokenSaleItemModel> }>({
     totalItems: 0,
     items: []
   });
@@ -183,6 +203,24 @@ export const APIContextProvider = ({ children }: any) => {
     [chainId, account]
   );
 
+  const fetchPublicTokenSaleItems = useCallback(
+    (page: number = 1) => {
+      fetchAllPublicSaleItems(chainId || 97, page)
+        .then(setPublicSaleItems)
+        .catch(console.log);
+    },
+    [chainId]
+  );
+
+  const fetchPrivateTokenSaleItems = useCallback(
+    (page: number = 1) => {
+      fetchAllPrivateSaleItems(chainId || 97, page)
+        .then(setPrivateSaleItems)
+        .catch(console.log);
+    },
+    [chainId]
+  );
+
   useEffect(() => {
     const iPools = localStorage.getItem('vefi-dapps-dex-imported-pools');
     const iMultisigs = localStorage.getItem('vefi-dapps-multisig-imported-wallets');
@@ -266,7 +304,11 @@ export const APIContextProvider = ({ children }: any) => {
         importedMultiSigs,
         importMultiSigs,
         specialStakingPools,
-        fetchSpecialPools
+        fetchSpecialPools,
+        publicSaleItems,
+        privateSaleItems,
+        fetchPrivateTokenSaleItems,
+        fetchPublicTokenSaleItems
       }}
     >
       {children}

@@ -18,7 +18,7 @@ import { useAPIContext } from '../../contexts/api';
 import UserLPItem from '../../components/Dex/PoolsListItem';
 import { useWeb3Context } from '../../contexts/web3';
 import { ListingModel } from '../../api/models/dex';
-import { computePair, fetchTokenBalanceForConnectedWallet, getOutputAmount } from '../../hooks/dex';
+import { computePair, fetchTokenBalanceForConnectedWallet, getOutputAmount, quote } from '../../hooks/dex';
 import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
 import TokensListModal from '../../components/Dex/TokensListModal';
 import { useDEXSettingsContext } from '../../contexts/dex/settings';
@@ -107,8 +107,7 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
   const balance1 = fetchTokenBalanceForConnectedWallet(firstSelectedToken.address, [isLoading]);
   const balance2 = fetchTokenBalanceForConnectedWallet(secondSelectedToken.address, [isLoading]);
 
-  const outputAmount1 = getOutputAmount(firstSelectedToken, secondSelectedToken, val1, chainId || 97);
-  const outputAmount2 = getOutputAmount(firstSelectedToken, secondSelectedToken, val2, chainId || 97);
+  const outputAmount1 = quote(firstSelectedToken.address, secondSelectedToken.address, val1, chainId || 97);
 
   const [playSuccess] = useSound(successFx);
   const [playError] = useSound(errorFx);
