@@ -485,3 +485,27 @@ export const fetchLiquidityValue = (pair: string, chainId: number, tokenAddress:
 
   return liquidityValue;
 };
+
+export const quote = (address1: string, address2: string, amount1: number, chainId: number) => {
+  const [amount2, setAmount2] = useState<number>(0);
+
+  useEffect(() => {
+    if (address1 && address2 && amount1 && chainId) {
+      (async () => {
+        try {
+          const url = chains[chainId as unknown as keyof typeof chains].rpcUrl;
+          const tokenA = address1 === AddressZero ? WETH[chainId as keyof typeof WETH] : await Fetcher.fetchTokenData(chainId, address1, url);
+          const tokenB = address2 === AddressZero ? WETH[chainId as keyof typeof WETH] : await Fetcher.fetchTokenData(chainId, address2, url);
+          const pair = await Fetcher.fetchPairData(tokenA, tokenB, url);
+          const val = new TokenAmount(tokenA, parseUnits(amount1.toPrecision(4), tokenA.decimals).toHexString())
+            .multiply(pair.reserveOf(tokenB))
+            .divide(pair.reserveOf(tokenA));
+          setAmount2(parseFloat(val.toSignificant(4)));
+        } catch (error: any) {
+          console.log(error);
+        }
+      })();
+    }
+  }, [address1, address2, amount1, chainId]);
+  return amount2;
+};

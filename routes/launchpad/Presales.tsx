@@ -1,6 +1,7 @@
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Countdown from 'react-countdown';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { Chart } from 'react-google-charts';
 import { Interface } from '@ethersproject/abi';
 import { isAddress } from '@ethersproject/address';
 import { Contract } from '@ethersproject/contracts';
@@ -186,137 +187,153 @@ const SelectedSaleItemRoute = ({
   }, [account, chain.rpcUrl, id, publicSaleCreator, tk, tk?.decimals, isLoading, isEmergencyWithdrawalLoading, isNormalWithdrawalLoading]);
 
   return (
-    <div className="flex flex-col md:flex-row justify-evenly items-center gap-6">
-      <div className="flex flex-col bg-[#161525] rounded-[31px] flex-1 gap-4">
-        <div className="w-full bg-[url('/images/bg_sale_item.png')] bg-cover rounded-t-[inherit]">
-          <div className="flex justify-between items-end w-full gap-3 relative bottom-[-30px] px-2">
-            <div className="flex justify-center items-center gap-4">
-              <div className="avatar">
-                <div className="w-20 rounded-full">
-                  <img
-                    src={
-                      tokensListingAsDictionary[token.toLowerCase()]
-                        ? tokensListingAsDictionary[token.toLowerCase()].logoURI
-                        : '/images/placeholder_image.svg'
-                    }
-                    alt={token}
-                  />
+    <div className="flex flex-col md:flex-row justify-evenly items-start gap-6">
+      <div className="flex flex-col gap-8 justify-center items-center flex-1 h-full w-full">
+        <div className="flex flex-col bg-[#161525] rounded-[31px] w-full gap-4">
+          <div className="w-full bg-[url('/images/bg_sale_item.png')] bg-cover rounded-t-[inherit]">
+            <div className="flex justify-between items-end w-full gap-3 relative bottom-[-30px] px-2">
+              <div className="flex justify-center items-center gap-4">
+                <div className="avatar">
+                  <div className="w-20 rounded-full">
+                    <img
+                      src={
+                        tokensListingAsDictionary[token.toLowerCase()]
+                          ? tokensListingAsDictionary[token.toLowerCase()].logoURI
+                          : '/images/placeholder_image.svg'
+                      }
+                      alt={token}
+                    />
+                  </div>
                 </div>
+                {details?.urls && (
+                  <div className="flex justify-center items-center gap-2 text-[#fff] text-[25px] relative bottom-[-25px]">
+                    {details.urls.website && (
+                      <a href={details.urls.website} target="_blank" rel="noreferrer">
+                        <FiGlobe />
+                      </a>
+                    )}
+                    {details.urls.telegram && (
+                      <a href={details.urls.telegram} target="_blank" rel="noreferrer">
+                        <FaTelegram />
+                      </a>
+                    )}
+                    {details.urls.discord && (
+                      <a href={details.urls.discord} target="_blank" rel="noreferrer">
+                        <FaDiscord />
+                      </a>
+                    )}
+                    {details.urls.twitter && (
+                      <a href={details.urls.twitter} target="_blank" rel="noreferrer">
+                        <FiTwitter />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
-              {details?.urls && (
-                <div className="flex justify-center items-center gap-2 text-[#fff] text-[25px] relative bottom-[-25px]">
-                  {details.urls.website && (
-                    <a href={details.urls.website} target="_blank" rel="noreferrer">
-                      <FiGlobe />
-                    </a>
-                  )}
-                  {details.urls.telegram && (
-                    <a href={details.urls.telegram} target="_blank" rel="noreferrer">
-                      <FaTelegram />
-                    </a>
-                  )}
-                  {details.urls.discord && (
-                    <a href={details.urls.discord} target="_blank" rel="noreferrer">
-                      <FaDiscord />
-                    </a>
-                  )}
-                  {details.urls.twitter && (
-                    <a href={details.urls.twitter} target="_blank" rel="noreferrer">
-                      <FiTwitter />
-                    </a>
-                  )}
-                </div>
-              )}
+              <span
+                className={`flex items-center ${
+                  rank !== 'unknown' ? (rank === 'gold' ? 'bg-[#d4af37]' : rank === 'silver' ? 'bg-[#bcc6cc]' : 'bg-[#cd7f32]') : 'bg-[#666362]'
+                } text-white text-[10px] font-[600] rounded p-1`}
+              >
+                {rank}
+              </span>
             </div>
-            <span
-              className={`flex items-center ${
-                rank !== 'unknown' ? (rank === 'gold' ? 'bg-[#d4af37]' : rank === 'silver' ? 'bg-[#bcc6cc]' : 'bg-[#cd7f32]') : 'bg-[#666362]'
-              } text-white text-[10px] font-[600] rounded p-1`}
-            >
-              {rank}
-            </span>
+          </div>
+          <div className="flex flex-col w-full gap-3 justify-center items-center py-4">
+            <h4 className="font-[700] text-white/10 text-[22px] md:text-[37px] font-MontserratAlt">Project Description</h4>
+            {details?.description ? (
+              <p className="text-white font-Inter font-[500] text-[16px] w-full text-center">{details.description}</p>
+            ) : (
+              <span className="font-Montserrat font-[600] text-red-500 uppercase text-[28px] md:text-[40px]">No Description</span>
+            )}
+          </div>
+          <div className="flex flex-col justify-center items-center gap-2 w-full px-4 py-10">
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Presale ID</span>
+              <div className="flex flex-col justify-end items-end gap-1 px-1">
+                <p className="text-[#197fcb] break-all text-[12px] font-[500] font-Montserrat w-full">{id}</p>
+                <p className="text-white font-Inter font-[500] text-[9px] text-center">Do not send funds directly to this ID</p>
+              </div>
+            </div>
+            {!!tk && (
+              <>
+                <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                  <span className="font-Inter text-white font-[500] text-[16px]">Token Name</span>
+                  <div className="flex flex-col justify-center items-center gap-1 px-1">
+                    <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.name}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                  <span className="font-Inter text-white font-[500] text-[16px]">Token Symbol</span>
+                  <div className="flex flex-col justify-center items-center gap-1 px-1">
+                    <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.symbol}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                  <span className="font-Inter text-white font-[500] text-[16px]">Total Supply</span>
+                  <div className="flex flex-col justify-center items-center gap-1 px-1">
+                    <p className="text-white font-Inter font-[500] text-[16px] text-center">{totalSupply}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+                  <span className="font-Inter text-white font-[500] text-[16px]">Tokens For Presale</span>
+                  <div className="flex flex-col justify-center items-center gap-1 px-1">
+                    <p className="text-white font-Inter font-[500] text-[16px] text-center">{formatUnits(tokensForSale, tk.decimals)}</p>
+                  </div>
+                </div>
+              </>
+            )}
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Soft Cap</span>
+              <div className="flex flex-col justify-center items-center gap-1 px-1">
+                <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                  {formatEther(softCap)} {chain?.symbol}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Hard Cap</span>
+              <div className="flex flex-col justify-center items-center gap-1 px-1">
+                <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                  {formatEther(hardCap)} {chain?.symbol}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Presale Start Time</span>
+              <div className="flex flex-col justify-center items-center gap-1 px-1">
+                <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(startTime)).toUTCString()}</p>
+              </div>
+            </div>
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Presale End Time</span>
+              <div className="flex flex-col justify-center items-center gap-1 px-1">
+                <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(endTime)).toUTCString()}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center items-center w-full py-3 px-3">
+            <p className="w-full text-center font-MontserratAlt font-[30px] text-white uppercase">
+              Reach out to us via any of our social handles if you&apos;re the owner of this token sale item and want to update your presale
+              information
+            </p>
           </div>
         </div>
-        <div className="flex flex-col w-full gap-3 justify-center items-center py-4">
-          <h4 className="font-[700] text-white/10 text-[22px] md:text-[37px] font-MontserratAlt">Project Description</h4>
-          {details?.description ? (
-            <p className="text-white font-Inter font-[500] text-[16px] w-full text-center">{details.description}</p>
-          ) : (
-            <span className="font-Montserrat font-[600] text-red-500 uppercase text-[28px] md:text-[40px]">No Description</span>
-          )}
-        </div>
-        <div className="flex flex-col justify-center items-center gap-2 w-full px-4 py-10">
-          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Presale ID</span>
-            <div className="flex flex-col justify-end items-end gap-1 px-1">
-              <p className="text-[#197fcb] break-all text-[12px] font-[500] font-Montserrat w-full">{id}</p>
-              <p className="text-white font-Inter font-[500] text-[9px] text-center">Do not send funds directly to this ID</p>
+        {details?.tokenomics && (
+          <div className="flex flex-col justify-center items-center bg-[#161215] rounded-[31px] gap-4 px-8 py-3 w-full">
+            <div className="border-b border-b-[#fff]/25 py-4 w-full flex justify-center items-center">
+              <span className="text-[#fff] font-MontserratAlt font-[700] text-[25px]">Tokenomics</span>
             </div>
+            <Chart
+              chartType="PieChart"
+              data={[['Item', 'Value'], ..._.keys(details.tokenomics).map((key) => [key.toUpperCase(), details?.tokenomics?.[key]])]}
+              options={{ backgroundColor: 'transparent', is3D: true, legend: { textStyle: { color: '#fff', fontName: 'Montserrat' } } }}
+              width={'100%'}
+            />
           </div>
-          {!!tk && (
-            <>
-              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-                <span className="font-Inter text-white font-[500] text-[16px]">Token Name</span>
-                <div className="flex flex-col justify-center items-center gap-1 px-1">
-                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.name}</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-                <span className="font-Inter text-white font-[500] text-[16px]">Token Symbol</span>
-                <div className="flex flex-col justify-center items-center gap-1 px-1">
-                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{tk.symbol}</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-                <span className="font-Inter text-white font-[500] text-[16px]">Total Supply</span>
-                <div className="flex flex-col justify-center items-center gap-1 px-1">
-                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{totalSupply}</p>
-                </div>
-              </div>
-              <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-                <span className="font-Inter text-white font-[500] text-[16px]">Tokens For Presale</span>
-                <div className="flex flex-col justify-center items-center gap-1 px-1">
-                  <p className="text-white font-Inter font-[500] text-[16px] text-center">{formatUnits(tokensForSale, tk.decimals)}</p>
-                </div>
-              </div>
-            </>
-          )}
-          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Soft Cap</span>
-            <div className="flex flex-col justify-center items-center gap-1 px-1">
-              <p className="text-white font-Inter font-[500] text-[16px] text-center">
-                {formatEther(softCap)} {chain?.symbol}
-              </p>
-            </div>
-          </div>
-          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Hard Cap</span>
-            <div className="flex flex-col justify-center items-center gap-1 px-1">
-              <p className="text-white font-Inter font-[500] text-[16px] text-center">
-                {formatEther(hardCap)} {chain?.symbol}
-              </p>
-            </div>
-          </div>
-          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Presale Start Time</span>
-            <div className="flex flex-col justify-center items-center gap-1 px-1">
-              <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(startTime)).toUTCString()}</p>
-            </div>
-          </div>
-          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Presale End Time</span>
-            <div className="flex flex-col justify-center items-center gap-1 px-1">
-              <p className="text-white font-Inter font-[500] text-[16px] text-center">{new Date(parseInt(endTime)).toUTCString()}</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-center items-center w-full py-3 px-3">
-          <p className="w-full text-center font-MontserratAlt font-[30px] text-white uppercase">
-            Reach out to us via any of our social handles if you&apos;re the owner of this token sale item and want to update your presale information
-          </p>
-        </div>
+        )}
       </div>
-      <div className="flex flex-col gap-8 justify-center items-center">
+      <div className="flex flex-col gap-8 justify-center items-center h-full">
         <div className="flex flex-col bg-[#161215] rounded-[15px] gap-3 px-6 py-2">
           <div className="flex flex-col gap-3 w-full justify-center items-center">
             <span className="text-[whitesmoke] text-[14px] font-Montserrat font-semibold">Sale Starts In:</span>

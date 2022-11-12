@@ -23,5 +23,6 @@ export interface TokenSaleItemModel {
       discord?: string;
       twitter?: string;
     };
+    tokenomics?: { [key: string]: number };
   };
 }
