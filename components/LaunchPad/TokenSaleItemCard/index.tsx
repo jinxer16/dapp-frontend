@@ -145,10 +145,23 @@ export default function PresaleItemCard({
           </div>
           <div className="flex flex-col my-5">
             <span className="text-[#fff] font-Montserrat font-[600] pb-[0.099rem]">
-              Progress ({_.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap)}%)
+              Progress (
+              {_.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) > 100
+                ? 100
+                : _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap)}
+              %)
             </span>
             <div className="h-[8px] bg-[#1673B9]">
-              <div className="h-full bg-green-400" style={{ width: _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) + '%' }} />
+              <div
+                className="h-full bg-green-400"
+                style={{
+                  width: `${
+                    _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) > 100
+                      ? 100
+                      : _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap)
+                  }%`
+                }}
+              />
             </div>
             <div className="flex justify-between text-center pt-[0.099rem]">
               <span className="text-[#fff] font-bold font-Montserrat">0</span>

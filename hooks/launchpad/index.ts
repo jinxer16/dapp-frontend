@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Interface } from '@ethersproject/abi';
 import { useEffect, useMemo, useState } from 'react';
@@ -6,7 +7,7 @@ import chains from '../../assets/chains.json';
 import { useWeb3Context } from '../../contexts/web3';
 import rpcCall from '../../api/rpc';
 
-export const fetchSaleItemInfo = (saleCreator: string, saleId: string) => {
+export const fetchSaleItemInfo = (saleCreator: string, saleId: string, deps: any[] = []) => {
   const { chainId } = useWeb3Context();
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
   const [info, setInfo] = useState({
@@ -29,6 +30,6 @@ export const fetchSaleItemInfo = (saleCreator: string, saleId: string) => {
         }
       })();
     }
-  }, [saleCreator, saleId, chain]);
+  }, [saleCreator, saleId, chain, ...deps]);
   return info;
 };

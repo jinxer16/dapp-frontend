@@ -1,5 +1,6 @@
 import React, { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Countdown from 'react-countdown';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Interface } from '@ethersproject/abi';
 import { isAddress } from '@ethersproject/address';
 import { Contract } from '@ethersproject/contracts';
@@ -7,7 +8,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { formatEther, formatUnits, parseEther, parseUnits } from '@ethersproject/units';
 import { Fetcher, Token } from 'quasar-sdk-core';
 import _ from 'lodash';
-import { FiPlus, FiChevronDown, FiArrowLeft, FiArrowRight, FiGlobe, FiTwitter } from 'react-icons/fi';
+import { FiPlus, FiChevronDown, FiArrowLeft, FiArrowRight, FiGlobe, FiTwitter, FiCopy } from 'react-icons/fi';
 import { FaDiscord, FaTelegram } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import { abi as saleCreatorAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/TokenSaleCreator.sol/TokenSaleCreator.json';
@@ -21,15 +22,15 @@ import { useAPIContext } from '../../contexts/api';
 import rpcCall from '../../api/rpc';
 import { TokenSaleItemModel } from '../../api/models/launchpad';
 import { fetchSaleItemInfo } from '../../hooks/launchpad';
+import { ThreeDots } from 'react-loader-spinner';
 
 enum Subroutes {
   ALL_ITEMS,
   SINGLE_ITEM,
-  CREATE_NEW,
-  APPLY
+  CREATE_NEW
 }
 
-const AllSalesRoute = ({ onClick }: any) => {
+const AllSalesRoute = ({ onClick, rank = 'all' }: any) => {
   const { publicSaleItems, fetchPublicTokenSaleItems } = useAPIContext();
   const [page, setPage] = useState<number>(1);
 
@@ -37,9 +38,12 @@ const AllSalesRoute = ({ onClick }: any) => {
   return (
     <div className="flex flex-col justify-center items-center gap-3">
       <div className="flex flex-col md:flex-row justify-center items-center gap-2 flex-wrap">
-        {_.map(publicSaleItems.items, (data, index) => (
-          <TokenSaleItemCard key={index} data={data} saleType="public" onClick={(val) => onClick(val)} />
-        ))}
+        {_.map(
+          publicSaleItems.items.filter((model) => (rank === 'all' ? !!model : model.rank === rank)),
+          (data, index) => (
+            <TokenSaleItemCard key={index} data={data} saleType="public" onClick={(val) => onClick(val)} />
+          )
+        )}
       </div>
       <div className="flex justify-center items-center gap-2 text-white/70">
         <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
@@ -75,10 +79,76 @@ const SelectedSaleItemRoute = ({
   const chain = useMemo(() => chains[chainId as unknown as keyof typeof chains], [chainId]);
   const publicSaleCreator = useMemo(() => tokenSaleCreators[chainId as unknown as keyof typeof tokenSaleCreators].publicTokenSaleCreator, [chainId]);
   const [tk, setToken] = useState<Token>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isEmergencyWithdrawalLoading, setIsEmergencyWithdrawalLoading] = useState<boolean>(false);
+  const [isNormalWithdrawalLoading, setIsNormalWithdrawalLoading] = useState<boolean>(false);
+  const [isFinalizeSaleLoading, setIsFinalizeSaleLoading] = useState<boolean>(false);
   const [totalSupply, setTotalSupply] = useState<string>('0');
-  const { totalEtherRaised } = fetchSaleItemInfo(publicSaleCreator, id);
+  const { totalEtherRaised } = fetchSaleItemInfo(publicSaleCreator, id, [isLoading, isEmergencyWithdrawalLoading]);
   const [amountContributed, setAmountContributed] = useState<string>('0');
   const [expectedBalance, setExpectedBalance] = useState<string>('0');
+  const [buyAmount, setBuyAmount] = useState<number>(0);
+
+  const buyTokens = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const provider = new Web3Provider(library?.givenProvider);
+      const saleContract = new Contract(publicSaleCreator, saleCreatorAbi, provider.getSigner());
+      const contributionTx = await saleContract.contribute(id, { value: parseEther(buyAmount.toPrecision(4)).toHexString() });
+      await contributionTx.wait();
+      toast(`Contributed ${buyAmount} ${chain?.symbol}`, { type: 'success' });
+      setIsLoading(false);
+    } catch (error: any) {
+      setIsLoading(false);
+      toast(error.message, { type: 'error' });
+    }
+  }, [buyAmount, chain?.symbol, id, library?.givenProvider, publicSaleCreator]);
+
+  const emergencyWithdrawal = useCallback(async () => {
+    try {
+      setIsEmergencyWithdrawalLoading(true);
+      const provider = new Web3Provider(library?.givenProvider);
+      const saleContract = new Contract(publicSaleCreator, saleCreatorAbi, provider.getSigner());
+      const withdrawalTx = await saleContract.emergencyWithdrawal(id);
+      await withdrawalTx.wait();
+      toast('Successfully withdrawn', { type: 'success' });
+      setIsEmergencyWithdrawalLoading(false);
+    } catch (error: any) {
+      setIsEmergencyWithdrawalLoading(false);
+      toast(error.message, { type: 'error' });
+    }
+  }, [id, library?.givenProvider, publicSaleCreator]);
+
+  const normalWithdrawal = useCallback(async () => {
+    try {
+      setIsNormalWithdrawalLoading(true);
+      const provider = new Web3Provider(library?.givenProvider);
+      const saleContract = new Contract(publicSaleCreator, saleCreatorAbi, provider.getSigner());
+      const withdrawalTx = await saleContract.normalWithdrawal(id);
+      await withdrawalTx.wait();
+      toast('Successfully withdrawn', { type: 'success' });
+      setIsNormalWithdrawalLoading(false);
+    } catch (error: any) {
+      console.log(error);
+      setIsNormalWithdrawalLoading(false);
+      toast(error.message, { type: 'error' });
+    }
+  }, [id, library?.givenProvider, publicSaleCreator]);
+
+  const finalizeTokenSale = useCallback(async () => {
+    try {
+      setIsFinalizeSaleLoading(true);
+      const provider = new Web3Provider(library?.givenProvider);
+      const saleContract = new Contract(publicSaleCreator, saleCreatorAbi, provider.getSigner());
+      const finalizeTx = await saleContract.finalizeTokenSale(id);
+      await finalizeTx.wait();
+      toast('Sale finalized', { type: 'success' });
+      setIsFinalizeSaleLoading(false);
+    } catch (error: any) {
+      setIsFinalizeSaleLoading(false);
+      toast(error.message, { type: 'error' });
+    }
+  }, [id, library?.givenProvider, publicSaleCreator]);
 
   useEffect(() => {
     if (!!token && !!chain && !!chainId) {
@@ -113,7 +183,7 @@ const SelectedSaleItemRoute = ({
         }
       })();
     }
-  }, [account, chain.rpcUrl, id, publicSaleCreator, tk, tk?.decimals]);
+  }, [account, chain.rpcUrl, id, publicSaleCreator, tk, tk?.decimals, isLoading, isEmergencyWithdrawalLoading, isNormalWithdrawalLoading]);
 
   return (
     <div className="flex flex-col md:flex-row justify-evenly items-center gap-6">
@@ -240,92 +310,150 @@ const SelectedSaleItemRoute = ({
             </div>
           </div>
         </div>
+        <div className="flex justify-center items-center w-full py-3 px-3">
+          <p className="w-full text-center font-MontserratAlt font-[30px] text-white uppercase">
+            Reach out to us via any of our social handles if you&apos;re the owner of this token sale item and want to update your presale information
+          </p>
+        </div>
       </div>
-      <div className="flex flex-col bg-[#161215] rounded-[15px] gap-3 px-6 py-2">
-        <div className="flex flex-col gap-3 w-full justify-center items-center">
-          <span className="text-[whitesmoke] text-[14px] font-Montserrat font-semibold">Sale Starts In:</span>
-          <Countdown
-            date={parseInt(startTime)}
-            renderer={({ days, hours, minutes, seconds, completed }) => (
-              <>
-                {completed ? (
-                  <span className="font-Montserrat text-white font-[700] uppercase">Started</span>
-                ) : (
-                  <span className="font-Montserrat text-white font-[700] text-[16px]">
-                    {days} Day(s) : {hours} Hr(s) : {minutes} Min(s) : {seconds} Sec(s)
-                  </span>
-                )}
-              </>
-            )}
-          />
-          <div className="flex flex-col gap-1 w-full justify-center items-center">
-            <div className="h-[8px] bg-[#1673B9] w-full">
-              <div className="h-full bg-green-400" style={{ width: _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) + '%' }} />
-            </div>
-            <div className="flex justify-between text-center pt-[0.099rem] w-full">
-              <span className="text-[#fff] font-bold font-Montserrat">0</span>
-              <span className="text-[#fff] font-bold font-Montserrat">{millify(parseFloat(formatEther(hardCap)), { precision: 4 })}</span>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center items-center gap-2 w-full border-b border-b-[#fff]/20 py-4">
-            <span className="text-[#fff] font-[600] font-MontserratAlt">Contribute</span>
-            <div className="w-full flex md:flex-row justify-center items-center gap-2">
-              <div className="bg-[#282736] rounded-[15px] gap-2 px-1 py-1 flex-1 flex justify-between items-center w-1/2">
-                <input
-                  type="number"
-                  className="p-[2px] bg-transparent text-white border-0 w-full outline-0 appearance-none font-[700] text-[18px] font-MontserratAlt"
+      <div className="flex flex-col gap-8 justify-center items-center">
+        <div className="flex flex-col bg-[#161215] rounded-[15px] gap-3 px-6 py-2">
+          <div className="flex flex-col gap-3 w-full justify-center items-center">
+            <span className="text-[whitesmoke] text-[14px] font-Montserrat font-semibold">Sale Starts In:</span>
+            <Countdown
+              date={parseInt(startTime)}
+              renderer={({ days, hours, minutes, seconds, completed }) => (
+                <>
+                  {completed ? (
+                    <span className="font-Montserrat text-white font-[700] uppercase">Started</span>
+                  ) : (
+                    <span className="font-Montserrat text-white font-[700] text-[16px]">
+                      {days} Day(s) : {hours} Hr(s) : {minutes} Min(s) : {seconds} Sec(s)
+                    </span>
+                  )}
+                </>
+              )}
+            />
+            <div className="flex flex-col gap-1 w-full justify-center items-center">
+              <div className="h-[8px] bg-[#1673B9] w-full">
+                <div
+                  className="h-full bg-green-400"
+                  style={{
+                    width: `${
+                      _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap) > 100
+                        ? 100
+                        : _.multiply(parseInt(totalEtherRaised), 100) / parseInt(hardCap)
+                    }%`
+                  }}
                 />
-                <button className="text-[#1673b9] font-MontserratAlt text-[12px] bg-transparent px-1 py-1">Max</button>
               </div>
-              <button className="bg-[#282736] rounded-[15px] gap-2 px-6 py-2 text-[#ffeb82] font-MontserratAlt flex-1">Buy</button>
+              <div className="flex justify-between text-center pt-[0.099rem] w-full">
+                <span className="text-[#fff] font-bold font-Montserrat">0</span>
+                <span className="text-[#fff] font-bold font-Montserrat">{millify(parseFloat(formatEther(hardCap)), { precision: 4 })}</span>
+              </div>
+            </div>
+            <div className="flex flex-col justify-center items-center gap-2 w-full border-b border-b-[#fff]/20 py-4">
+              <span className="text-[#fff] font-[600] font-MontserratAlt">Contribute</span>
+              <div className="w-full flex md:flex-row justify-center items-center gap-2">
+                <div className="bg-[#282736] rounded-[15px] gap-2 px-1 py-1 flex-1 flex justify-between items-center w-1/2">
+                  <input
+                    type="number"
+                    value={buyAmount}
+                    onChange={(e) => setBuyAmount(e.target.valueAsNumber || 0)}
+                    className="p-[2px] bg-transparent text-white border-0 w-full outline-0 appearance-none font-[700] text-[18px] font-MontserratAlt"
+                  />
+                  <button className="text-[#1673b9] font-MontserratAlt text-[12px] bg-transparent px-1 py-1">Max</button>
+                </div>
+                <button
+                  disabled={isLoading || buyAmount <= 0}
+                  onClick={buyTokens}
+                  className="bg-[#282736] rounded-[15px] gap-2 px-6 py-2 text-[#ffeb82] font-MontserratAlt flex-1 flex justify-center items-center"
+                >
+                  Buy <ThreeDots visible={isLoading} height={20} width={20} />
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-col w-full gap-3 justify-center items-center">
+              <span className="font-Montserrat text-white text-[12px] font-[600]">Your Contribution:</span>
+              <span className="font-Montserrat text-[#289bf1] text-[12px] font-[700]">
+                {amountContributed} {chain?.symbol}
+              </span>
             </div>
           </div>
-          <div className="flex flex-col w-full gap-3 justify-center items-center">
-            <span className="font-Montserrat text-white text-[12px] font-[600]">Your Contribution:</span>
-            <span className="font-Montserrat text-[#289bf1] text-[12px] font-[700]">
-              {amountContributed} {chain?.symbol}
-            </span>
-          </div>
-        </div>
-        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-          <span className="font-Inter text-white font-[500] text-[16px]">Minimum Buy</span>
-          <div className="flex flex-col justify-center items-center gap-1 px-1">
-            <p className="text-white font-Inter font-[500] text-[16px] text-center">
-              {formatEther(minContribution)} {chain?.symbol}
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-          <span className="font-Inter text-white font-[500] text-[16px]">Maximum Buy</span>
-          <div className="flex flex-col justify-center items-center gap-1 px-1">
-            <p className="text-white font-Inter font-[500] text-[16px] text-center">
-              {formatEther(maxContribution)} {chain?.symbol}
-            </p>
-          </div>
-        </div>
-        {!!tk && (
           <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-            <span className="font-Inter text-white font-[500] text-[16px]">Rate</span>
+            <span className="font-Inter text-white font-[500] text-[16px]">Minimum Buy</span>
             <div className="flex flex-col justify-center items-center gap-1 px-1">
               <p className="text-white font-Inter font-[500] text-[16px] text-center">
-                1 {chain?.symbol} {'<=>'} {formatUnits(presaleRate, tk.decimals)} {tk.symbol}
+                {formatEther(minContribution)} {chain?.symbol}
               </p>
             </div>
           </div>
-        )}
-        <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
-          <span className="font-Inter text-white font-[500] text-[16px]">My Balance</span>
-          <div className="flex flex-col justify-center items-center gap-1 px-1">
-            <p className="text-white font-Inter font-[500] text-[16px] text-center">
-              {expectedBalance} {tk?.symbol}
-            </p>
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Maximum Buy</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                {formatEther(maxContribution)} {chain?.symbol}
+              </p>
+            </div>
+          </div>
+          {!!tk && (
+            <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+              <span className="font-Inter text-white font-[500] text-[16px]">Rate</span>
+              <div className="flex flex-col justify-center items-center gap-1 px-1">
+                <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                  1 {chain?.symbol} {'<=>'} {formatUnits(presaleRate, tk.decimals)} {tk.symbol}
+                </p>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-between items-center w-full border-b border-b-[#fff]/20 px-1 py-1 text-ellipsis">
+            <span className="font-Inter text-white font-[500] text-[16px]">Your Balance</span>
+            <div className="flex flex-col justify-center items-center gap-1 px-1">
+              <p className="text-white font-Inter font-[500] text-[16px] text-center">
+                {expectedBalance} {tk?.symbol}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-center items-center w-full gap-3 py-4">
+            <button
+              onClick={normalWithdrawal}
+              disabled={isNormalWithdrawalLoading}
+              className={`btn btn-success flex-1 px-1 py-1 ${isNormalWithdrawalLoading ? 'loading' : ''}`}
+            >
+              Harvest Tokens
+            </button>
+            <button
+              onClick={emergencyWithdrawal}
+              disabled={isEmergencyWithdrawalLoading}
+              className={`btn btn-warning flex-1 px-1 py-1 ${isEmergencyWithdrawalLoading ? 'loading' : ''}`}
+            >
+              Emergency Withdrawal
+            </button>
           </div>
         </div>
-        <div className="flex justify-center items-center w-full gap-3">
-          <button className="btn btn-success flex-1 px-1 py-1">Harvest Tokens</button>
-          <button className="btn btn-warning flex-1 px-1 py-1">Emergency Withdrawal</button>
+        <div className="bg-[#161215] flex flex-col justify-center items-center gap-3 rounded-[15px] px-4 py-3 w-full flex-1">
+          <div className="flex flex-col w-full justify-center items-center gap-1 font-Montserrat">
+            <span className="text-[#ffeb82] font-[600] text-[11px]">Token Address:</span>
+            <div className="flex justify-center gap-2 items-center">
+              <span className="text-white text-[11px]">{token}</span>
+              <CopyToClipboard text={token}>
+                <button className="btn btn-ghost btn-square btn-sm">
+                  <FiCopy className="text-white" />
+                </button>
+              </CopyToClipboard>
+            </div>
+          </div>
+          <button
+            disabled={isFinalizeSaleLoading}
+            onClick={finalizeTokenSale}
+            className={`btn btn-accent w-full gap-3 ${isFinalizeSaleLoading ? 'loading' : ''}`}
+          >
+            Finalize Sale
+            <div className="badge badge-secondary">admin</div>
+          </button>
         </div>
       </div>
+      <ToastContainer position="top-right" theme="dark" autoClose={5000} />
     </div>
   );
 };
@@ -648,11 +776,10 @@ const CreateSaleRoute = () => {
   );
 };
 
-const ApplyForPresaleRoute = () => <div>Apply For Presale</div>;
-
 export default function Presales() {
   const [selectedRoute, setSelectedRoute] = useState<Subroutes>(Subroutes.ALL_ITEMS);
   const [selectedSaleItem, setSelectedSaleItem] = useState<TokenSaleItemModel>();
+  const [rank, setRank] = useState<'all' | 'silver' | 'bronze' | 'unknown' | 'gold'>('all');
 
   return (
     <div className="h-full overflow-auto hidden-scrollbar">
@@ -715,49 +842,51 @@ export default function Presales() {
               <FiPlus />
               <span className="font-[600]">Create</span>
             </button>
-            <button onClick={() => setSelectedRoute(Subroutes.APPLY)} className="py-2 px-3 bg-[#ffeb82] rounded-[11px] text-[#000] w-full md:w-1/3">
-              <span className="font-[600]">Apply For Presale Launch</span>
-            </button>
           </div>
-          <div className="flex flex-1 p-5 justify-end">
-            <div className="dropdown">
-              <div className="flex flex-col justify-center items-center">
-                <span className="text-[#c7c7c7] font-[600] text-[10px] ml-[-34px] font-Montserrat">Filter By</span>
-                <label
-                  tabIndex={0}
-                  className="border-[#1673b9] border-[1px] p-[5px] px-3 flex justify-center items-center rounded-[5px] text-[#fff] text-[11px] bg-transparent m-2"
-                >
-                  <span className="font-[600] mr-[4px]">All Status</span>
-                  <FiChevronDown />
-                </label>
+          {selectedRoute === Subroutes.ALL_ITEMS && (
+            <div className="flex flex-1 p-5 justify-end">
+              <div className="dropdown">
+                <div className="flex flex-col justify-center items-center">
+                  <span className="text-[#c7c7c7] font-[600] text-[10px] ml-[-34px] font-Montserrat">Filter By</span>
+                  <label
+                    tabIndex={0}
+                    className="border-[#1673b9] border-[1px] p-[5px] px-3 flex justify-center items-center rounded-[5px] text-[#fff] text-[11px] bg-transparent m-2"
+                  >
+                    <span className="font-[600] mr-[4px]">All Status</span>
+                    <FiChevronDown />
+                  </label>
+                </div>
+                <ul tabIndex={0} className="dropdown-content menu  shadow bg-base-100 rounded-box w-full text-[12px]">
+                  <li>
+                    <a onClick={() => setRank('all')}>All</a>
+                  </li>
+                  <li>
+                    <a onClick={() => setRank('gold')}>Gold</a>
+                  </li>
+                  <li>
+                    <a onClick={() => setRank('silver')}>Silver</a>
+                  </li>
+                  <li>
+                    <a onClick={() => setRank('bronze')}>Bronze</a>
+                  </li>
+                  <li>
+                    <a onClick={() => setRank('unknown')}>Unknown</a>
+                  </li>
+                </ul>
               </div>
-              <ul tabIndex={0} className="dropdown-content menu  shadow bg-base-100 rounded-box w-full text-[12px]">
-                <li>
-                  <a>All</a>
-                </li>
-                <li>
-                  <a>Gold</a>
-                </li>
-                <li>
-                  <a>Silver</a>
-                </li>
-                <li>
-                  <a>Bronze</a>
-                </li>
-              </ul>
             </div>
-          </div>
+          )}
         </div>
       </div>
       {selectedRoute === Subroutes.ALL_ITEMS && (
         <AllSalesRoute
+          rank={rank}
           onClick={(item: TokenSaleItemModel) => {
             setSelectedSaleItem(item);
             setSelectedRoute(Subroutes.SINGLE_ITEM);
           }}
         />
       )}
-      {selectedRoute === Subroutes.APPLY && <ApplyForPresaleRoute />}
       {selectedRoute === Subroutes.CREATE_NEW && <CreateSaleRoute />}
       {selectedRoute === Subroutes.SINGLE_ITEM && <SelectedSaleItemRoute {...(selectedSaleItem as TokenSaleItemModel)} />}
     </div>
