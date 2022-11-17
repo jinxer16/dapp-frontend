@@ -5,6 +5,7 @@ import { Chart } from 'react-google-charts';
 import { Interface } from '@ethersproject/abi';
 import { isAddress } from '@ethersproject/address';
 import { Contract } from '@ethersproject/contracts';
+import { AddressZero } from '@ethersproject/constants';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatEther, formatUnits, parseEther, parseUnits } from '@ethersproject/units';
 import { Fetcher, Token } from 'quasar-sdk-core';
@@ -12,6 +13,7 @@ import _ from 'lodash';
 import { FiPlus, FiChevronDown, FiArrowLeft, FiArrowRight, FiGlobe, FiTwitter, FiCopy } from 'react-icons/fi';
 import { FaDiscord, FaTelegram } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
+import { ThreeDots } from 'react-loader-spinner';
 import { abi as saleCreatorAbi } from 'vefi-token-launchpad-staking/artifacts/contracts/TokenSaleCreator.sol/TokenSaleCreator.json';
 import { abi as erc20Abi } from 'vefi-token-launchpad-staking/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import millify from 'millify';
@@ -23,7 +25,7 @@ import { useAPIContext } from '../../contexts/api';
 import rpcCall from '../../api/rpc';
 import { TokenSaleItemModel } from '../../api/models/launchpad';
 import { fetchSaleItemInfo } from '../../hooks/launchpad';
-import { ThreeDots } from 'react-loader-spinner';
+import { fetchTokenBalanceForConnectedWallet } from '../../hooks/dex';
 
 enum Subroutes {
   ALL_ITEMS,
@@ -89,6 +91,7 @@ const SelectedSaleItemRoute = ({
   const [amountContributed, setAmountContributed] = useState<string>('0');
   const [expectedBalance, setExpectedBalance] = useState<string>('0');
   const [buyAmount, setBuyAmount] = useState<number>(0);
+  const ethBalance = fetchTokenBalanceForConnectedWallet(AddressZero, [isLoading, isEmergencyWithdrawalLoading, isNormalWithdrawalLoading]);
 
   const buyTokens = useCallback(async () => {
     try {
@@ -379,7 +382,12 @@ const SelectedSaleItemRoute = ({
                     onChange={(e) => setBuyAmount(e.target.valueAsNumber || 0)}
                     className="p-[2px] bg-transparent text-white border-0 w-full outline-0 appearance-none font-[700] text-[18px] font-MontserratAlt"
                   />
-                  <button className="text-[#1673b9] font-MontserratAlt text-[12px] bg-transparent px-1 py-1">Max</button>
+                  <button
+                    onClick={() => setBuyAmount(parseFloat(ethBalance))}
+                    className="text-[#1673b9] font-MontserratAlt text-[12px] bg-transparent px-1 py-1"
+                  >
+                    Max
+                  </button>
                 </div>
                 <button
                   disabled={isLoading || buyAmount <= 0}

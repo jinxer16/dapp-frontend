@@ -16,7 +16,7 @@ export default function Dex() {
       <Head>
         <title>Vefi DApps | DEX</title>
       </Head>
-      <div className="flex justify-center items-center my-16">
+      <div className="flex justify-center items-center my-16 w-full">
         <div className="flex justify-center items-center my-[3px] rounded-[18px] bg-white py-[2px] px-[4px]">
           <ToggleButton isActive={route === Route.SWAP} onClick={() => setRoute(Route.SWAP)}>
             <span>Swap</span>
@@ -29,7 +29,7 @@ export default function Dex() {
           </ToggleButton>
         </div>
       </div>
-      <div className="flex justify-center items-center my-16 px-1">
+      <div className="flex justify-center items-center my-16 px-1 w-full">
         {route === Route.SWAP && <Swap />}
         {route === Route.LIQUIDITY && <Liquidity />}
         {route === Route.STATS && <Stats />}

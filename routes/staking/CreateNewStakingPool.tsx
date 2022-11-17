@@ -85,7 +85,7 @@ export default function CreateNewStakingPool() {
   }, [action, chain.rpcUrl]);
 
   return (
-    <div className="flex justify-center items-center w-full px-4 py-4">
+    <div className="flex justify-center items-center w-full px-2 py-4">
       <div className="card rounded-[20px] bg-[#000]/50 shadow-xl font-Montserrat overflow-auto hidden-scrollbar w-full md:w-2/6 backdrop-blur-[60px] py-4">
         <form onSubmit={submitForm} className="card-body w-full font-poppins">
           <span className="card-title text-white font-[800]">Create New Staking Pool</span>
