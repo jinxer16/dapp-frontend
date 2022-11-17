@@ -39,7 +39,7 @@ const LPRoute = ({ routeChange }: any) => {
   const { chainId } = useWeb3Context();
   const { reload } = useRouter();
   return (
-    <div className="bg-[#000000]/50 border-[#ffeb82] border-[1px] rounded-[20px] px-[19px] flex justify-center items-center py-[19px] w-full md:w-1/3 md:max-h-[600px] font-Montserrat">
+    <div className="bg-[#000000]/50 border-[#ffeb82] border-[1px] rounded-[20px] px-[19px] flex justify-center items-center py-[19px] w-full md:w-1/3 font-Montserrat">
       <div className="flex flex-col justify-evenly items-center w-full">
         <div className="flex justify-between items-center border-b-[#4e4e4e]/[.43] border-b-[2px] w-full">
           <div className="flex flex-col justify-start items-start w-8/8">
@@ -56,7 +56,7 @@ const LPRoute = ({ routeChange }: any) => {
           </div>
         </div>
         <div className="mt-[63px] bg-[#0c0b16] rounded-[12px] flex justify-center items-center py-[9px] px-[26px] w-full">
-          <div className="flex justify-center items-center w-full flex-col gap-1 px-1">
+          <div className="flex justify-center items-center w-full flex-col gap-1 px-1 overflow-auto">
             {liquidityPoolsForUser.items.length === 0 && importedPools[(chainId as number) || 97]?.length === 0 ? (
               <span className="text-white">No liquidity found</span>
             ) : (

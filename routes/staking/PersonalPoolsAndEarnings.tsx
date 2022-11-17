@@ -50,7 +50,7 @@ export default function PersonalPoolsAndEarnings() {
 
       <div className="flex flex-col justify-start items-start w-full md:w-[700px] font-poppins">
         <span className="font-[700] text-[20px] text-[#fff]">My Stakes & Rewards</span>
-        <div className="artboard artboard-horizontal bg-[#000]/50 px-[2px] rounded-[15px] overflow-auto py-[8px] shadow-lg">
+        <div className="bg-[#000]/50 px-4 rounded-[15px] overflow-auto py-[8px] shadow-lg flex justify-center items-center flex-col w-full hidden-scrollbar">
           <div className="table w-full border-separate bg-transparent overflow-auto border-spacing-y-[20px] border-spacing-x-[0px]">
             <div className="table-header-group w-full h-[50px]">
               <div className="table-row text-[#fff] w-full font-[800] uppercase gap-3">

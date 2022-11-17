@@ -37,7 +37,7 @@ export default function Stats() {
       </div> */}
       <div className="flex flex-col justify-start items-start w-full md:w-[700px] font-poppins">
         <span className="font-[700] text-[20px] text-[#fff]">Top Pools</span>
-        <div className="artboard artboard-horizontal bg-[#000]/50 px-[2px] rounded-[15px] overflow-auto py-[8px] shadow-lg">
+        <div className="bg-[#000]/50 px-10 rounded-[15px] overflow-auto py-[8px] shadow-lg flex justify-center items-center flex-col w-full">
           <div className="table w-full border-separate bg-transparent overflow-auto border-spacing-y-[20px] border-spacing-x-[0px]">
             <div className="table-header-group w-full h-[50px]">
               <div className="table-row text-[#fff] w-full font-[800] uppercase gap-3">
@@ -111,32 +111,34 @@ export default function Stats() {
             </label>
           </div>
         </div>
-        <div className="artboard artboard-horizontal bg-[#000]/50 px-[2px] rounded-[15px] overflow-auto py-[8px] shadow-lg">
-          <div className="table w-full border-separate bg-transparent overflow-auto border-spacing-y-[20px] border-spacing-x-[0px]">
-            <div className="table-header-group w-full h-[50px]">
-              <div className="table-row text-[#fff] w-full font-[800] uppercase gap-3">
-                <div className="table-cell text-center">Transaction</div>
-                <div className="table-cell text-center">Token Amount</div>
-                <div className="table-cell text-center">Token Amount</div>
-                <div className="table-cell text-center">Time</div>
+        <div className="flex justify-center items-center w-full">
+          <div className="bg-[#000]/50 px-10 rounded-[15px] overflow-auto py-[8px] shadow-lg flex justify-center items-center flex-col w-full hidden-scrollbar">
+            <div className="table w-full border-separate bg-transparent overflow-auto border-spacing-y-[30px] border-spacing-x-[0px]">
+              <div className="table-header-group w-full h-[50px]">
+                <div className="table-row text-[#fff] w-full font-[800] uppercase gap-3">
+                  <div className="table-cell text-center">Transaction</div>
+                  <div className="table-cell text-center">Token Amount</div>
+                  <div className="table-cell text-center">Token Amount</div>
+                  <div className="table-cell text-center">Time</div>
+                </div>
+              </div>
+              <div className="table-row-group">
+                {_.map(events.items, (ev, index) => (
+                  <EventsTableBodyItem key={index} event={ev} />
+                ))}
               </div>
             </div>
-            <div className="table-row-group">
-              {_.map(events.items, (ev, index) => (
-                <EventsTableBodyItem key={index} event={ev} />
-              ))}
+            <div className="flex justify-center items-center gap-2 text-white/70">
+              <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
+                <FiArrowLeft />
+              </button>
+              <span>
+                Page {page} of {Math.ceil(events.totalItems / 20)}
+              </span>
+              <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(events.totalItems / 20)} className="bg-transparent">
+                <FiArrowRight />
+              </button>
             </div>
-          </div>
-          <div className="flex justify-center items-center gap-2 text-white/70">
-            <button onClick={() => setPage((p) => p - 1)} disabled={page === 1} className="bg-transparent">
-              <FiArrowLeft />
-            </button>
-            <span>
-              Page {page} of {Math.ceil(events.totalItems / 20)}
-            </span>
-            <button onClick={() => setPage((p) => p + 1)} disabled={page >= Math.ceil(events.totalItems / 20)} className="bg-transparent">
-              <FiArrowRight />
-            </button>
           </div>
         </div>
       </div>

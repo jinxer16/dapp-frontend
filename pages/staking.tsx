@@ -16,13 +16,13 @@ export default function Staking() {
       <Head>
         <title>Vefi DApps | Stake</title>
       </Head>
-      <div className="flex flex-col justify-evenly gap-4 items-start w-full h-full bg-radialed overflow-auto hidden-scrollbar">
+      <div className="flex flex-col justify-center md:justify-evenly gap-4 items-start w-full h-full bg-radialed overflow-auto hidden-scrollbar">
         <div className="flex flex-col justify-evenly gap-1 px-5">
           <span className="text-[#fff] font-Montserrat font-[700] text-[64px]">Staking Pools</span>
           <span className="text-[#fff] font-Montserrat font-[400] text-[20px]">Stake Tokens To Earn Rewards</span>
         </div>
-        <div className="flex flex-1 border-[#ffeb82] border-t rounded-t-[20px] flex-col gap-3 w-full backdrop-opacity-10 backdrop-invert px-[2px] py-[12px] md:px-[82px] md:py-[44px] overflow-auto hidden-scrollbar">
-          <div className="flex flex-col md:flex-row justify-center items-center w-full gap-4">
+        <div className="flex max-h-[550px] md:max-h-fit flex-1 border-[#ffeb82] border-t rounded-t-[20px] flex-col gap-3 w-full backdrop-opacity-10 backdrop-invert px-[2px] py-[12px] md:px-[82px] md:py-[44px] justify-start items-center">
+          <div className="flex flex-col md:flex-row justify-center items-center w-full gap-4 overflow-auto hidden-scrollbar">
             <div className="flex flex-row justify-center items-center gap-3 text-[#fff] font-Montserrat">
               <button
                 className={activeRoute === Subroutes.REGULAR_POOLS ? 'border-b-[1px] border-[#0cedfc]' : undefined}
@@ -55,7 +55,7 @@ export default function Staking() {
           </div> */}
           </div>
 
-          <div className="overflow-auto hidden-scrollbar flex-1 flex justify-center items-center w-full">
+          <div className="w-full px-3 max-h-[900px] flex-1 overflow-auto hidden-scrollbar justify-center items-start flex">
             {activeRoute === Subroutes.REGULAR_POOLS && <RegularStakingPools />}
             {activeRoute === Subroutes.CREATE_NEW_POOL && <CreateNewStakingPool />}
             {activeRoute === Subroutes.MY_POOLS && <PersonalPoolsAndEarnings />}

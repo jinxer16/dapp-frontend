@@ -15,7 +15,7 @@ export default function RegularStakingPools() {
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center w-full">
-      <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-grow px-[4px]">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-1 px-[4px]">
         {stakingPools.totalItems === 0 ? (
           <Empty />
         ) : (

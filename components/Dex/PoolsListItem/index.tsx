@@ -16,7 +16,7 @@ export default function UserLPItem({ pair }: any) {
       <div className="flex justify-evenly items-center gap-2 w-full">
         <div className="avatar-group -space-x-6">
           <div className="avatar">
-            <div className="w-8">
+            <div className="w-4 md:w-8">
               <img
                 src={
                   tokensListingAsDictionary[lpDetails.token0] ? tokensListingAsDictionary[lpDetails.token0].logoURI : '/images/placeholder_image.svg'
@@ -26,7 +26,7 @@ export default function UserLPItem({ pair }: any) {
             </div>
           </div>
           <div className="avatar">
-            <div className="w-8">
+            <div className="w-4 md:w-8">
               <img
                 src={
                   tokensListingAsDictionary[lpDetails.token1] ? tokensListingAsDictionary[lpDetails.token1].logoURI : '/images/placeholder_image.svg'
@@ -36,10 +36,10 @@ export default function UserLPItem({ pair }: any) {
             </div>
           </div>
         </div>
-        <span className="text-white font-poppins font-[16px]">
+        <span className="text-white font-poppins md:font-[16px] font-[12px]">
           {lpDetails.token0Symbol}/{lpDetails.token1Symbol}
         </span>
-        <span className="text-white font-poppins font-[16px]">{lpDetails.accountBalance.toPrecision(4)}</span>
+        <span className="text-white font-poppins md:font-[16px] font-[12px]">{lpDetails.accountBalance.toPrecision(2)}</span>
         <button onClick={() => setRemoveLiquidityModalVisible(true)} className="btn btn-square bg-red-500">
           {' '}
           <FiTrash2 className="text-white" />{' '}
