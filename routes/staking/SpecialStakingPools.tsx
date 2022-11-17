@@ -14,14 +14,14 @@ export default function SpecialStakingPools() {
   }, [fetchSpecialPools, page]);
 
   return (
-    <div className="flex flex-col gap-2 justify-center items-center w-full">
-      <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full flex-grow px-[4px]">
+    <div className="flex flex-col gap-2 justify-center items-center w-full flex-1">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-3 flex-nowrap md:flex-wrap w-full px-[4px] flex-1 py-2">
         {specialStakingPools.totalItems === 0 ? (
           <Empty />
         ) : (
           <>
             {_.map(specialStakingPools.items, (pool, index) => (
-              <div className="px-[3px] py-[4px] w-full md:w-1/5" key={index}>
+              <div className="px-[3px] py-[4px] w-full md:w-1/5 overflow-auto" key={index}>
                 <StakingPoolCard key={index} pool={pool} poolType="special" />
               </div>
             ))}
