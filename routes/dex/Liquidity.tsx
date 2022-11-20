@@ -18,7 +18,7 @@ import { useAPIContext } from '../../contexts/api';
 import UserLPItem from '../../components/Dex/PoolsListItem';
 import { useWeb3Context } from '../../contexts/web3';
 import { ListingModel } from '../../api/models/dex';
-import { computePair, fetchTokenBalanceForConnectedWallet, getOutputAmount, quote } from '../../hooks/dex';
+import { computePair, fetchTokenBalanceForConnectedWallet, quote } from '../../hooks/dex';
 import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
 import TokensListModal from '../../components/Dex/TokensListModal';
 import { useDEXSettingsContext } from '../../contexts/dex/settings';
@@ -365,7 +365,7 @@ const AddLiquidityRoute = ({ routeChange }: any) => {
               isLoading ? 'loading' : ''
             }`}
           >
-            <span>Add Liquidity</span>
+            <span className="font-MontserratAlt">Add Liquidity</span>
           </button>
         )}
       </div>

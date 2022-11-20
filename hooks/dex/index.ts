@@ -500,7 +500,7 @@ export const quote = (address1: string, address2: string, amount1: number, chain
           const val = new TokenAmount(tokenA, parseUnits(amount1.toPrecision(4), tokenA.decimals).toHexString())
             .multiply(pair.reserveOf(tokenB))
             .divide(pair.reserveOf(tokenA));
-          setAmount2(parseFloat(val.toSignificant(4)));
+          setAmount2(parseFloat(val.toSignificant(7)));
         } catch (error: any) {
           console.log(error);
         }

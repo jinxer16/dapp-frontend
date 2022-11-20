@@ -14,7 +14,7 @@ import assert from 'assert';
 import { WETH, Fetcher, Trade, TokenAmount, Router, Percent, ETHER, CurrencyAmount } from 'quasar-sdk-core';
 import JSBI from 'jsbi';
 import { abi as erc20Abi } from 'quasar-v1-core/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
-import { abi as routerAbi } from 'quasar-v1-periphery/artifacts/contracts/QuasarRouter.sol/QuasarRouter.json';
+import { abi as routerAbi } from 'quasar-v1-periphery/artifacts/contracts/QuasarRouter02.sol/QuasarRouter02.json';
 import useSound from 'use-sound';
 import Chart from '../../components/Dex/Chart';
 import SwapSettingsModal from '../../components/Dex/SwapSettingsModal';
@@ -129,10 +129,23 @@ export default function Swap() {
       const { args, methodName, value } = Router.swapCallParameters(trades[0], {
         ttl: _.multiply(txDeadlineInMins, 60),
         allowedSlippage: new Percent(`0x${JSBI.BigInt(slippageTolerance * 100).toString(16)}`, `0x${JSBI.BigInt(100).toString(16)}`),
-        recipient: account as string
+        recipient: account as string,
+        feeOnTransfer: chainId !== 97
       });
 
       switch (methodName) {
+        case 'swapExactETHForTokensSupportingFeeOnTransferTokens': {
+          const gas = await routerContract.estimateGas.swapExactETHForTokensSupportingFeeOnTransferTokens(args[0], args[1], args[2], args[3], {
+            value,
+            gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString()
+          });
+          swapTx = await routerContract.swapExactETHForTokensSupportingFeeOnTransferTokens(args[0], args[1], args[2], args[3], {
+            value,
+            gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString(),
+            gasLimit: gas.toHexString()
+          });
+          break;
+        }
         case 'swapExactETHForTokens': {
           const gas = await routerContract.estimateGas.swapExactETHForTokens(args[0], args[1], args[2], args[3], {
             value,
@@ -145,12 +158,50 @@ export default function Swap() {
           });
           break;
         }
+        case 'swapExactTokensForETHSupportingFeeOnTransferTokens': {
+          const gas = await routerContract.estimateGas.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            args[0],
+            args[1],
+            args[2],
+            args[3],
+            args[4],
+            {
+              value,
+              gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString()
+            }
+          );
+          swapTx = await routerContract.swapExactTokensForETHSupportingFeeOnTransferTokens(args[0], args[1], args[2], args[3], args[4], {
+            value,
+            gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString(),
+            gasLimit: gas.toHexString()
+          });
+          break;
+        }
         case 'swapExactTokensForETH': {
           const gas = await routerContract.estimateGas.swapExactTokensForETH(args[0], args[1], args[2], args[3], args[4], {
             value,
             gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString()
           });
           swapTx = await routerContract.swapExactTokensForETH(args[0], args[1], args[2], args[3], args[4], {
+            value,
+            gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString(),
+            gasLimit: gas.toHexString()
+          });
+          break;
+        }
+        case 'swapExactTokensForTokensSupportingFeeOnTransferTokens': {
+          const gas = await routerContract.estimateGas.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+            args[0],
+            args[1],
+            args[2],
+            args[3],
+            args[4],
+            {
+              value,
+              gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString()
+            }
+          );
+          swapTx = await routerContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(args[0], args[1], args[2], args[3], args[4], {
             value,
             gasPrice: parseUnits(gasPrice.toString(), 'gwei').toHexString(),
             gasLimit: gas.toHexString()
@@ -466,12 +517,14 @@ export default function Swap() {
               <div className="flex justify-center gap-2 items-center w-full flex-col mt-[40px]">
                 <button
                   onClick={swapTokens}
-                  disabled={!!pairError || isSwapLoading || val1 <= 0}
+                  disabled={!!pairError || isSwapLoading || val1 <= 0 || val1 > parseFloat(balance1)}
                   className={`flex justify-center items-center bg-[#1673b9] btn py-[14px] px-[10px] rounded-[19px] text-[18px] text-white w-full ${
                     isSwapLoading ? 'loading' : ''
                   }`}
                 >
-                  <span>Swap</span>
+                  <span className="font-MontserratAlt">
+                    {val1 > parseFloat(balance1) ? `Insufficient ${firstSelectedToken.symbol} balance` : 'Swap'}
+                  </span>
                 </button>
               </div>
             )}
