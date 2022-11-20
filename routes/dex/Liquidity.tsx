@@ -72,7 +72,7 @@ const LPRoute = ({ routeChange }: any) => {
                 onClick={() => routeChange(LiquidityRoutes.FIND_OTHER_LP_TOKENS)}
                 className="border-[#1673b9] border-[2px] rounded-[19px] w-full py-[13px] px-[17px] text-[#1673b9] text-[18px] font-[600] flex justify-center"
               >
-                <span>Find other LP tokens</span>
+                <span className="font-MontserratAlt">Find other LP tokens</span>
               </button>
             </div>
           </div>
@@ -81,7 +81,7 @@ const LPRoute = ({ routeChange }: any) => {
           onClick={() => routeChange(LiquidityRoutes.ADD_LIQUIDITY)}
           className="flex justify-center items-center bg-[#1673b9] py-[14px] px-[62px] rounded-[19px] text-[18px] text-white w-full mt-[54px]"
         >
-          <FiPlus /> <span className="ml-[16px]">Add Liquidity</span>
+          <FiPlus /> <span className="ml-[16px] font-MontserratAlt">Add Liquidity</span>
         </button>
       </div>
       <SwapSettingsModal isOpen={isSettingsModalVisible} onClose={() => setIsSettingsModalVisible(false)} />
@@ -465,7 +465,7 @@ const FindOtherLPRoute = ({ routeChange }: any) => {
                   isImportLoading ? 'loading' : ''
                 }`}
               >
-                <span>Import</span>
+                <span className="font-MontserratAlt">Import</span>
               </button>
             )}
           </div>
